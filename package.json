@@ -101,7 +101,6 @@
   "scripts": {
     "vault:init": "node --experimental-strip-types packages/vault/scripts/vault-init.ts",
     "vault:migrate": "node --experimental-strip-types packages/vault/scripts/vault-migrate.ts",
-    "vault:skills": "node --experimental-strip-types packages/vault/scripts/skills-migrate.ts",
     "dev": "cd packages/app && next dev",
     "build": "cd packages/app && next build",
     "export": "cd packages/app && next build",

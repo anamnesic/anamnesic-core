@@ -1,6 +1,6 @@
 # KAIROS
 
-> Plataforma de agentes de IA — terminal-native, multi-canal, com memória persistente, vault criptografado e 65+ skills internas.
+> Plataforma de agentes de IA — terminal-native, multi-canal, com memória persistente e vault criptografado.
 
 ---
 
@@ -17,7 +17,7 @@ Componentes principais:
 - **CLI/TUI terminal-native** com interface Ink/Go
 - **UI web/desktop** (Next.js, Tauri, apps mobile iOS/Android/macOS)
 - **Vault criptografado** (AES-256-GCM) para dados sensíveis em runtime
-- **65 skills internas Kairos** baseadas em referências externas anonimizadas
+- **Sistema de skills customizadas** — extensível via `data/skills/kairos/`
 
 ---
 
@@ -68,7 +68,7 @@ kairos/
 ├── github/                     # GitHub Action (uses: sst/kairos/github@latest)
 │
 ├── data/                       # Runtime — gitignored, criptografado via vault
-│   └── skills/kairos/          # 65 skills internas (.md com frontmatter YAML)
+│   └── skills/kairos/          # skills customizadas (.md com frontmatter YAML) — vazio, ver seção "Skills Internas"
 │
 ├── docs/                       # Documentação
 │   └── specs/                  # Especificações do projeto
@@ -85,25 +85,17 @@ kairos/
 
 ## Skills Internas (Vault)
 
-65 skills em `data/skills/kairos/` no formato `kairos_nome_versao.md`:
-
-| Categoria | Skill | Capacidades |
-|-----------|-------|-------------|
-| `coding` | KairosForge, KairosEngineer, KairosFlow, KairosDroid, KairosCloud | Pair programming, LSP, refatoração, contexto de editor |
-| `agent` | KairosAgent, KairosBuilder, KairosOrbit | Execução autônoma, scaffold de projetos, orquestração |
-| `conversation` | KairosAurora, KairosNova, KairosEcho, KairosLingua | Raciocínio, ética, multilíngue, chat avançado |
-| `research` | KairosPrism, KairosDawn, KairosScout | Busca profunda, raciocínio, web research |
-| `ui` | KairosCanvas, KairosStudio, KairosArtisan | Geração de UI, componentes, design systems |
-| `browser` | KairosNavigator, KairosCompass, KairosGuard | Automação web, extração, privacidade |
-| `multimodal` | KairosSpectrum, KairosEdge | Imagem, áudio, tempo real |
-| `voice` | KairosEmpathy | IA de voz empática |
-| `analysis` | KairosLens | Análise contextual, overlay |
+Suporte a skills customizadas em `data/skills/kairos/` (formato `.md` com frontmatter YAML).
+O conteúdo anteriormente presente neste diretório foi removido: eram prompts de sistema de
+produtos de terceiros (obtidos de fontes públicas), não propriedade intelectual da ChronoKairo,
+e foram descartados por risco legal/de proveniência. Novas skills devem ser escritas
+originalmente antes de serem adicionadas.
 
 Skills são criptografadas pelo vault em runtime. Formato:
 ```yaml
 ---
-id: kairosforge-cursor-2-0-sys-prompt
-name: KairosForge
+id: nome-da-skill
+name: NomeDaSkill
 version: "1.0.0"
 category: coding
 capabilities:
@@ -131,9 +123,6 @@ pnpm vault:init
 
 # Migrar dados plaintext para vault
 KAIROS_VAULT_KEY=<hex> pnpm vault:migrate
-
-# Migrar skills para vault
-KAIROS_VAULT_KEY=<hex> pnpm vault:skills
 ```
 
 ---
