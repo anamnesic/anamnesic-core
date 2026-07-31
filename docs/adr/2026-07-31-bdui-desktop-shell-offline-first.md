@@ -77,6 +77,7 @@ deve funcionar offline, com o gateway kairoscode como sidecar local. Rotas HTTP
 | Página real `commands` (slash commands do `registry.commands` — name, description, plugin, args, auth) | ✅ |
 | Página real `hooks` (typedHooks + legacy — hookName, plugin, priority, source) | ✅ |
 | Página real `services` (plugin services + discovery — id, plugin, stop, source) | ✅ |
+| Página real `memory` (config de memorySearch por agente, redigido) | ✅ |
 | Página real `overview` (dashboard de landing com métricas reais do registry + health do config) | ✅ |
 | `bdui.getPage` async (RPC + HTTP) compartilhado | ✅ |
 | Decisão de transporte HTTP loopback registrada | ✅ |
@@ -107,6 +108,7 @@ deve funcionar offline, com o gateway kairoscode como sidecar local. Rotas HTTP
 | 2026-07-31 | Página real `commands` via `buildCommandsPage` — slash commands do `registry.commands` (name, description, plugin, acceptsArgs, requireAuth) espelhando `/help` do Claude Code; rotas async em `getBduiPage` e síncrona em `buildBduiPage` |
 | 2026-07-31 | Página real `hooks` via `buildHooksPage` — `registry.typedHooks` (hookName, pluginId, priority, source) + contagem legacy; espelha hooks do Claude Code/Cline; `bdui-actions.ts` refatorado com helper `reloadHandler` genérico para todas as páginas registry-based (overview, plugins, tools, providers, commands, hooks) |
 | 2026-07-31 | Página real `services` via `buildServicesPage` — `registry.services` (id, plugin, hasStop, source) + `registry.gatewayDiscoveryServices` (contagem); expande `reloadHandler` para services |
+| 2026-07-31 | Página real `memory` via `buildMemoryPage` — config de `agents.defaults.memorySearch` + `agents.list[].memorySearch` redigida (`redactConfigSnapshot`), por agente (enabled, provider, model, fallback, store path); async via `getBduiPage` |
 | 2026-07-31 | Página real `overview` (landing dashboard) via `buildOverviewPage` — métricas reais (agents, plugins loaded, tools, providers, channels configurados) + health card (config valid/issues/warnings, plugins errors, channel registrations, model providers) + quick-links; branch hard-coded removido do `buildBduiPage` (overview agora é async via `getBduiPage`) |
 | 2026-07-31 | `AGENTS.md` raiz: seção "BDUI Pages — Concept Parity (2026 products)" documentando paridade conceitual de skills/extensions/providers/channels com Claude Code / Cursor / Cline / n8n / OpenVSX |
 

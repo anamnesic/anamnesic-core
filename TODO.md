@@ -98,7 +98,7 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
   - [ ] Sidecar: `bdui.action` (connect, disconnect, start/stop)
   - [x] Frontend: rota `/control/channels` (shell genérico) → BDUI
 - [ ] **Memory** — recall/recuperação (`recall/reranked`)
-  - [ ] Sidecar: `bdui.getPage` `memory`
+  - [x] Sidecar: `bdui.getPage` `memory` (config de `agents.defaults.memorySearch` + `agents.list[].memorySearch` redigida — enabled, provider, model, fallback, store path por agente)
   - [ ] Sidecar: `bdui.action` (search, delete)
   - [ ] Frontend: rota `/control/memory` → BDUI
 - [ ] **Vault** — credenciais (`vault`, `vault/[key]`)
@@ -164,6 +164,6 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
 | Fase | Total | Feito | Restante |
 |---|---|---|---|
 | Fase 0 — Fundação | 10 | 5 | 5 |
-| Fase 1 — Páginas existentes | 17 | 12 | 5 |
+| Fase 1 — Páginas existentes | 18 | 13 | 5 |
 | Fase 2 — Sem página no desktop | 18 | 0 | 18 |
 | Fase 3 — Limpeza/qualidade | 5 | 0 | 5 |

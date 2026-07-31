@@ -472,6 +472,84 @@ function buildHooksPage(): BduiPage {
   };
 }
 
+export function buildMemoryPage(snapshot: ConfigFileSnapshot): BduiPage {
+  const config = snapshot.runtimeConfig;
+  const defaults = config.agents?.defaults?.memorySearch;
+  const agents = listAgentsForGateway(config).agents;
+  const rows = agents.map((agent) => {
+    const agentEntry = config.agents?.list?.find((entry) => entry.id === agent.id);
+    const memory = agentEntry?.memorySearch ?? defaults;
+    return {
+      agent: agent.id,
+      enabled: memory?.enabled === false ? "no" : "yes",
+      provider: memory?.provider ?? "-",
+      model: memory?.model ?? "-",
+      fallback: memory?.fallback ?? "-",
+      store: memory?.store?.path ?? "-",
+    };
+  });
+  const enabledCount = rows.filter((row) => row.enabled === "yes").length;
+  const providers = new Set(rows.map((row) => row.provider).filter((provider) => provider !== "-"));
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Memory",
+      subtitle: `${rows.length} agents, ${enabledCount} with memory search`,
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Memory" }],
+      },
+      children: [
+        {
+          key: "memory-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-agents",
+              type: "metric",
+              props: { value: String(rows.length), label: "Agents" },
+            },
+            {
+              key: "metric-enabled",
+              type: "metric",
+              props: { value: String(enabledCount), label: "Enabled" },
+            },
+            {
+              key: "metric-providers",
+              type: "metric",
+              props: { value: String(providers.size), label: "Providers" },
+            },
+          ],
+        },
+        {
+          key: "memory-card",
+          type: "card",
+          props: { title: "Memory search per agent" },
+          children: [
+            {
+              key: "memory-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "agent", label: "Agent" },
+                  { key: "enabled", label: "Enabled" },
+                  { key: "provider", label: "Provider" },
+                  { key: "model", label: "Model" },
+                  { key: "fallback", label: "Fallback" },
+                  { key: "store", label: "Store" },
+                ],
+                rows,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 export function buildProjectsPage(snapshot: ConfigFileSnapshot): BduiPage {
   const config = snapshot.runtimeConfig;
   const agents = listAgentsForGateway(config).agents;
@@ -939,6 +1017,9 @@ export async function getBduiPage(pageId: string): Promise<BduiPage> {
   }
   if (pageId === "projects") {
     return buildProjectsPage(await readRedactedConfigSnapshot());
+  }
+  if (pageId === "memory") {
+    return buildMemoryPage(await readRedactedConfigSnapshot());
   }
   if (pageId === "settings") {
     return buildSettingsPage(await readRedactedConfigSnapshot());
