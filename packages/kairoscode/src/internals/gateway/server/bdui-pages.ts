@@ -248,6 +248,127 @@ function buildProvidersPage(): BduiPage {
   };
 }
 
+export function buildOverviewPage(snapshot: ConfigFileSnapshot): BduiPage {
+  const registry = getActivePluginRegistry();
+  const plugins = registry?.plugins ?? [];
+  const pluginsLoaded = plugins.filter((plugin) => plugin.status === "loaded" && plugin.enabled).length;
+  const pluginsErrored = plugins.filter((plugin) => plugin.status === "error").length;
+  const tools = registry?.tools ?? [];
+  const toolCount = tools.flatMap((tool) => tool.names).length;
+  const providers = registry?.providers ?? [];
+  const channels = registry?.channels ?? [];
+  const channelRegistrations = channels.length;
+  const channelsConfigured = Object.entries(snapshot.runtimeConfig.channels ?? {}).filter(
+    (key) => key[0] !== "defaults" && key[0] !== "modelByChannel",
+  ).length;
+  const config = snapshot.runtimeConfig;
+  const modelProviders = Object.keys(config.models?.providers ?? {});
+  const agents = listAgentsForGateway(config).agents.length;
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Overview",
+      subtitle: "Live snapshot of the kairoscode sidecar.",
+      icon: "barChart",
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Overview" }],
+      },
+      children: [
+        {
+          key: "overview-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-agents",
+              type: "metric",
+              props: { value: String(agents), label: "Agents" },
+            },
+            {
+              key: "metric-plugins",
+              type: "metric",
+              props: { value: String(pluginsLoaded), label: "Plugins loaded" },
+            },
+            {
+              key: "metric-tools",
+              type: "metric",
+              props: { value: String(toolCount), label: "Tools" },
+            },
+            {
+              key: "metric-providers",
+              type: "metric",
+              props: { value: String(providers.length), label: "Providers" },
+            },
+            {
+              key: "metric-channels",
+              type: "metric",
+              props: { value: String(channelsConfigured), label: "Channels" },
+            },
+          ],
+        },
+        {
+          key: "overview-health-card",
+          type: "card",
+          props: { title: "Health" },
+          children: [
+            {
+              key: "overview-health-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "key", label: "Key" },
+                  { key: "value", label: "Value" },
+                ],
+                rows: [
+                  { key: "config valid", value: snapshot.valid ? "yes" : "no" },
+                  { key: "config issues", value: String(snapshot.issues.length) },
+                  { key: "config warnings", value: String(snapshot.warnings.length) },
+                  { key: "plugins errors", value: String(pluginsErrored) },
+                  { key: "channel registrations", value: String(channelRegistrations) },
+                  { key: "model providers (ref)", value: String(modelProviders.length) },
+                ],
+              },
+            },
+          ],
+        },
+        {
+          key: "overview-links-card",
+          type: "card",
+          props: { title: "Jump to" },
+          children: [
+            {
+              key: "link-agents",
+              type: "link",
+              props: { content: "Agents", href: "/control/agents" },
+              actions: { onClick: { type: "navigate", route: "/control/agents" } },
+            },
+            {
+              key: "link-plugins",
+              type: "link",
+              props: { content: "Plugins", href: "/control/plugins" },
+              actions: { onClick: { type: "navigate", route: "/control/plugins" } },
+            },
+            {
+              key: "link-channels",
+              type: "link",
+              props: { content: "Channels", href: "/control/channels" },
+              actions: { onClick: { type: "navigate", route: "/control/channels" } },
+            },
+            {
+              key: "link-settings",
+              type: "link",
+              props: { content: "Settings", href: "/control/settings" },
+              actions: { onClick: { type: "navigate", route: "/control/settings" } },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 export function buildSettingsPage(snapshot: ConfigFileSnapshot): BduiPage {
   const config = snapshot.runtimeConfig;
   const providers = Object.entries(config.models?.providers ?? {});
@@ -508,6 +629,9 @@ async function readRedactedConfigSnapshot(): Promise<ConfigFileSnapshot> {
 }
 
 export async function getBduiPage(pageId: string): Promise<BduiPage> {
+  if (pageId === "overview") {
+    return buildOverviewPage(await readRedactedConfigSnapshot());
+  }
   if (pageId === "settings") {
     return buildSettingsPage(await readRedactedConfigSnapshot());
   }
@@ -532,79 +656,6 @@ export function buildBduiPage(pageId: string): BduiPage {
 
   if (pageId === "providers") {
     return buildProvidersPage();
-  }
-
-  if (pageId === "overview") {
-    return {
-      schema: "bdui/v1",
-      layout: {
-        type: "page",
-        title: "BDUI Overview",
-        subtitle: "Server-driven example page.",
-        icon: "barChart",
-        navigation: {
-          breadcrumbs: [{ label: "BDUI" }],
-        },
-        children: [
-          {
-            key: "status-row",
-            type: "row",
-            style: { gap: "12px" },
-            children: [
-              {
-                key: "metric-instances",
-                type: "metric",
-                props: { value: "0", label: "Instances" },
-              },
-              {
-                key: "metric-sessions",
-                type: "metric",
-                props: { value: "0", label: "Sessions" },
-              },
-              {
-                key: "metric-cron",
-                type: "metric",
-                props: { value: "0", label: "Cron" },
-              },
-            ],
-          },
-          {
-            key: "section-notes",
-            type: "card",
-            props: { title: "Notes" },
-            children: [
-              {
-                key: "note-text",
-                type: "text",
-                props: {
-                  content:
-                    "This page is defined entirely by the server via the BDUI schema.",
-                },
-              },
-              {
-                key: "note-link",
-                type: "link",
-                props: { content: "Go to Chat", href: "/chat" },
-                actions: { onClick: { type: "navigate", route: "/chat" } },
-              },
-            ],
-          },
-          {
-            key: "section-actions",
-            type: "card",
-            props: { title: "Actions" },
-            children: [
-              {
-                key: "reload-btn",
-                type: "button",
-                props: { label: "Reload page" },
-                actions: { onClick: { type: "dispatch", event: "reload" } },
-              },
-            ],
-          },
-        ],
-      },
-    };
   }
 
   return {

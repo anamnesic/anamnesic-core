@@ -53,7 +53,7 @@
 - [x] Página real `channels` lendo `config.channels` (redigido) + `registry.channels` (id, label, source, enabled, accounts)
 - [x] Página real `agents` via `listAgentsForGateway` (id, name, model, workspace, default)
 - [x] Adaptar Control UI (Lit) com componente host `<bdui-page>` na aba `bdui`
-- [ ] Migrar superfície existente (ex: dashboard cards)
+- [x] Migrar superfície existente (ex: dashboard cards) — página `overview` agora com métricas reais (agents, plugins, tools, providers, channels) + health (config valid/issues/warnings, plugins errors) via `buildOverviewPage`
 
 ### Superfícies
 - [ ] Adaptar Control UI (Lit) para consumir BDUI

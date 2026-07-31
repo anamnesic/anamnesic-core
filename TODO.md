@@ -152,6 +152,6 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
 | Fase | Total | Feito | Restante |
 |---|---|---|---|
 | Fase 0 — Fundação | 10 | 5 | 5 |
-| Fase 1 — Páginas existentes | 14 | 6 | 8 |
+| Fase 1 — Páginas existentes | 14 | 7 | 7 |
 | Fase 2 — Sem página no desktop | 18 | 0 | 18 |
 | Fase 3 — Limpeza/qualidade | 5 | 0 | 5 |

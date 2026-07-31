@@ -92,6 +92,105 @@ const table = sqliteTable("session", {
 })
 ```
 
+## BDUI Pages — Concept Parity (2026 products)
+
+BDUI pages (`bdui.getPage` no sidecar kairoscode, servidas ao shell dinâmico do
+desktop em `/control/:pageId`) devem refletir os conceitos de produtos
+similares de 2026, não inventar terminologia ou semântica própria. Antes de
+implementar uma página, confirme a paridade conceitual abaixo; se houver gap,
+alinhe ao padrão de mercado, não crie um termo novo.
+
+### Skills
+
+- **Modelo de referência (2026):** Claude Skills (`SKILL.md` em
+  `~/.claude/skills/` ou `.claude/skills/`), Cursor rules, Cline rules,
+  Gemini CLI `GEMINI.md`.
+- **Semântica:** uma Skill é um **pacote de instruções markdown** com
+  frontmatter (`name`, `description`, opcionalmente `allowed-tools`), que
+  estende o comportamento de um agente em um escopo (global / projeto /
+  plugin). Não é código executável; é contexto/instrução injetável
+  on-demand pelo agente.
+- **Na BDUI page `skills`:** liste Skills como o Claude Code lista —
+  `name`, `description`, escopo (`global`/`project`/`plugin`), source
+  (caminho ou plugin), enabled/disabled. Actions: `install`, `update`,
+  `remove` espelham `claude skills install|remove` / Cursor cmd. **Não**
+  trate Skills como ferramentas (tools) — elas não são invocáveis, são
+  interpretadas pelo agente.
+- **Fonte dos dados:** descoberta de `SKILL.md` em `skills/` de plugins
+  (manifest `skills` arrays) + paths de config (`skills.paths`) + URLs
+  (`skills.urls`), resolução de frontmatter. Não invente um registry
+  separado; reúso o discovery de skills existente.
+
+### Extensions
+
+- **Modelo de referência (2026):** VS Code / OpenVSX extensions (plugins
+  runtime), Cursor extensions, Claude Code MCP installs.
+- **Semântica:** uma Extension é um **pacote instalável** de um registry
+  público (OpenVSX / VS Code Marketplace), versionado, com
+  enable/disable/uninstall. Diferente de plugin nativo kairos, é uma
+  unidade de distribuição, não de runtime.
+- **Na BDUI page `extensions`:** search (query OpenVSX), lista de
+  instalados (id, version, enabled), install/uninstall,
+  enable/disable/sync. Espelha a UX da paleta de extensões VS Code /
+  Cursor.
+- **Fonte dos dados:** cliente OpenVSX já usado pelo desktop
+  (`/api/v1/extensions/open-vsx/search`); estado de instalação em
+  `~/.kairos/extensions/` ou equivalente.
+
+### Providers
+
+- **Modelo de referência (2026):** Anthropic/OpenAI/Google model
+  pickers, Cursor "Models" settings, Cline "API Providers", LM Studio
+  local endpoints, OpenRouter aggregator.
+- **Semântica:** um Provider é uma **origem de inferência LLM** com auth
+  (API key / OAuth / local), baseUrl, catálogo de modelos e
+  capabilities (context window, thinking, vision, tool-use).
+- **Na BDUI page `providers`:** liste como Cursor/Cline — `id`, `label`,
+  `source` (plugin), `auth kind`, modelos disponíveis, modelo padrão
+  marcado. Actions: `set provider`, `set API key` (via config/secret),
+  `set default model`. Não confunda com "Models" isolados — provedor é
+  o container, modelo é a entry dentro dele.
+- **Fonte dos dados:** `registry.providers` já exposto; config
+  `models.providers` para baseUrl + modelos configurados.
+
+### Channels
+
+- **Modelo de referência (2026):** n8n / Make integrations, Slack/Discord
+  bot onboarding flows, Whatsapp Business API connect, Telegram BotFather
+  flows, Linear/GitHub webhook configs.
+- **Semântica:** um Channel é uma **integração de mensageria de entrada
+  /saída** (Discord, Telegram, Slack, etc.) com contas conectadas, estado
+  de conexão, gating (allowlist, menção em grupo), e mapeamento
+  canal→modelo/agente.
+- **Na BDUI page `channels`:** liste como n8n/Linear settings —
+  `id`, `label`, `source` (builtin/plugin), `enabled`, `accounts`
+  (quantidade conectada), status de cada conta. Actions: `connect`,
+  `disconnect`, `start`/`stop`, `set model per channel`. Espelha o
+  "Connections" do n8n / "Integrations" do Linear.
+- **Fonte dos dados:** `registry.channels` + `config.channels` (redigido
+  via `redactConfigSnapshot`).
+
+### Regras gerais de paridade
+
+- **Terminologia:** use os termos que o usuário 2026 reconhece do Claude
+  Code / Cursor / Cline / n8n. Não invente sinônimos (`skills` ≠
+  `commands`, `extensions` ≠ `plugins`, `providers` ≠ `models`).
+- **Dados reais:** toda página BDUI serve dados do sidecar (registry /
+  config / SQLite), nunca dados demo ou hard-coded. Se uma página não
+  tem fonte de dados real, ela não entra no registry até ter.
+- **Não duplicar conceitos:** uma entidade conceitual = uma página. Se
+  "tools" e "skills" parecem sobrepostos, lembre: tools são código
+  invocável pelo agente; skills são instruções markdown interpretadas.
+  Mantenha-os em páginas separadas como o Claude Code mantém.
+- **Offline-first:** páginas devem renderizar sem rede (OpenVSX é
+  opcional com degradação graciosa para `extensions`). Métricas que
+  exigem rede externa devem marcar o estado "unavailable" em vez de
+  falhar.
+- **Redação de secrets:** qualquer página que toque config usa
+  `redactConfigSnapshot` — nunca exponha tokens, API keys, ou
+  `accounts` com credenciais brutas. Espelha o padrão da página
+  `settings` já implementada.
+
 ## Testing
 
 - Avoid mocks as much as possible
