@@ -287,6 +287,14 @@ export type PluginControlUiDescriptorRegistryRegistration = {
   rootDir?: string;
 };
 
+export type PluginBduiComponentRegistryRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  registration: PluginBduiComponentRegistration;
+  source: string;
+  rootDir?: string;
+};
+
 export type PluginRuntimeLifecycleRegistryRegistration = {
   pluginId: string;
   pluginName?: string;
@@ -417,6 +425,7 @@ export type PluginRegistry = {
   trustedToolPolicies?: PluginTrustedToolPolicyRegistryRegistration[];
   toolMetadata?: PluginToolMetadataRegistryRegistration[];
   controlUiDescriptors?: PluginControlUiDescriptorRegistryRegistration[];
+  bduiComponents?: PluginBduiComponentRegistryRegistration[];
   runtimeLifecycles?: PluginRuntimeLifecycleRegistryRegistration[];
   agentEventSubscriptions?: PluginAgentEventSubscriptionRegistryRegistration[];
   sessionSchedulerJobs?: PluginSessionSchedulerJobRegistryRegistration[];

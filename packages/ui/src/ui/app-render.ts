@@ -126,6 +126,7 @@ import {
 } from "./navigation.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import "./components/dashboard-header.ts";
+import "./components/bdui-page.ts";
 import {
   buildAgentMainSessionKey,
   parseAgentSessionKey,
@@ -2528,6 +2529,9 @@ export function renderApp(state: AppViewState) {
               onRepairDreamingArtifacts: () => repairDreamingArtifacts(state),
               onRequestUpdate: requestHostUpdate,
             })
+          : nothing}
+        ${state.tab === "bdui"
+          ? html`<bdui-page pageId="overview" basePath=${state.basePath ?? ""}></bdui-page>`
           : nothing}
       </main>
       ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}

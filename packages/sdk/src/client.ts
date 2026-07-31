@@ -251,6 +251,7 @@ export class kairos {
   readonly artifacts: ArtifactsNamespace;
   readonly approvals: ApprovalsNamespace;
   readonly environments: EnvironmentsNamespace;
+  readonly bdui: BduiNamespace;
 
   private readonly transport: kairosTransport;
   private readonly normalizedEvents = new EventHub<kairosEvent>({
@@ -279,6 +280,7 @@ export class kairos {
     this.artifacts = new ArtifactsNamespace(this);
     this.approvals = new ApprovalsNamespace(this);
     this.environments = new EnvironmentsNamespace(this);
+    this.bdui = new BduiNamespace(this);
   }
 
   async connect(): Promise<void> {
@@ -798,5 +800,23 @@ export class EnvironmentsNamespace extends RpcNamespace {
   async delete(environmentId: string): Promise<unknown> {
     void environmentId;
     return unsupportedGatewayApi("oc.environments.delete");
+  }
+}
+
+export class BduiNamespace extends RpcNamespace {
+  constructor(client: kairos) {
+    super(client, "bdui");
+  }
+
+  async registry(): Promise<unknown> {
+    return await this.call("registry");
+  }
+
+  async getPage(pageId: string, params?: Record<string, string>): Promise<unknown> {
+    return await this.call("getPage", { pageId, ...(params ? { params } : {}) });
+  }
+
+  async action(pageId: string, action: unknown, state?: Record<string, unknown>): Promise<unknown> {
+    return await this.call("action", { pageId, action, ...(state ? { state } : {}) });
   }
 }

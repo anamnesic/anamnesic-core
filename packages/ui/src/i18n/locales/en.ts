@@ -370,6 +370,7 @@ export const en: TranslationMap = {
     debug: "Debug",
     logs: "Logs",
     dreams: "Dreaming",
+    bdui: "BDUI",
   },
   subtitles: {
     agents: "Workspaces, tools, identities.",
@@ -391,6 +392,7 @@ export const en: TranslationMap = {
     debug: "Snapshots, events, RPC.",
     logs: "Live gateway logs.",
     dreams: "Memory dreaming, consolidation, and reflection.",
+    bdui: "Server-driven UI pages.",
   },
   overview: {
     access: {

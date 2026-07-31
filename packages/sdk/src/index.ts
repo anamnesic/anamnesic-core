@@ -3,6 +3,7 @@ export {
   AgentsNamespace,
   ApprovalsNamespace,
   ArtifactsNamespace,
+  BduiNamespace,
   EnvironmentsNamespace,
   ModelsNamespace,
   kairos,

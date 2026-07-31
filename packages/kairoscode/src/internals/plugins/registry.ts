@@ -71,6 +71,7 @@ import {
   isPluginJsonValue,
   normalizePluginHostHookId,
   type PluginAgentEventSubscriptionRegistration,
+  type PluginBduiComponentRegistration,
   type PluginControlUiDescriptor,
   type PluginRuntimeLifecycleRegistration,
   type PluginSessionSchedulerJobRegistration,
@@ -100,6 +101,7 @@ import {
 import { normalizeRegisteredProvider } from "./provider-validation.js";
 import { createEmptyPluginRegistry } from "./registry-empty.js";
 import type {
+  PluginBduiComponentRegistryRegistration,
   PluginCliBackendRegistration,
   PluginCliRegistration,
   PluginCommandRegistration,
@@ -1749,6 +1751,49 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
+  const registerBduiComponent = (
+    record: PluginRecord,
+    registration: PluginBduiComponentRegistration,
+  ) => {
+    const type = normalizeHostHookString(registration.type);
+    const description = normalizeOptionalHostHookString(registration.description);
+    const category = normalizeOptionalHostHookString(registration.category);
+    if (!type) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "BDUI component registration requires a non-empty type",
+      });
+      return;
+    }
+    const existing = (registry.bduiComponents ?? []).find(
+      (entry) => entry.pluginId === record.id && entry.registration.type === type,
+    );
+    if (existing) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `BDUI component already registered: ${type}`,
+      });
+      return;
+    }
+    (registry.bduiComponents ??= []).push({
+      pluginId: record.id,
+      pluginName: record.name,
+      registration: {
+        type,
+        ...(description !== undefined ? { description } : {}),
+        ...(category !== undefined ? { category } : {}),
+        schema: registration.schema,
+        defaultProps: registration.defaultProps,
+      },
+      source: record.source,
+      rootDir: record.rootDir,
+    });
+  };
+
   const registerRuntimeLifecycle = (
     record: PluginRecord,
     lifecycle: PluginRuntimeLifecycleRegistration,
@@ -2274,6 +2319,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
               registerToolMetadata: (metadata) => registerToolMetadata(record, metadata),
               registerControlUiDescriptor: (descriptor) =>
                 registerControlUiDescriptor(record, descriptor),
+              registerBduiComponent: (registration) =>
+                registerBduiComponent(record, registration),
               registerRuntimeLifecycle: (lifecycle) => registerRuntimeLifecycle(record, lifecycle),
               registerAgentEventSubscription: (subscription) =>
                 registerAgentEventSubscription(record, subscription),

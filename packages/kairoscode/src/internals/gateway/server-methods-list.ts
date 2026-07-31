@@ -148,6 +148,10 @@ const BASE_METHODS = [
   "chat.history",
   "chat.abort",
   "chat.send",
+  // BDUI methods
+  "bdui.getPage",
+  "bdui.registry",
+  "bdui.action",
 ];
 
 export function listGatewayMethods(): string[] {

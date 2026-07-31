@@ -2487,6 +2487,8 @@ export type OpenClawPluginApi = {
   registerToolMetadata: (metadata: PluginToolMetadataRegistration) => void;
   /** Register a generic Control UI contribution descriptor. */
   registerControlUiDescriptor: (descriptor: PluginControlUiDescriptor) => void;
+  /** Register a BDUI component type that the gateway can render. */
+  registerBduiComponent: (registration: PluginBduiComponentRegistration) => void;
   /** Register cleanup hooks for plugin-owned host state and background work. */
   registerRuntimeLifecycle: (lifecycle: PluginRuntimeLifecycleRegistration) => void;
   /** Subscribe to sanitized agent events through the host-owned plugin lifecycle. */

@@ -16,6 +16,7 @@ export default defineConfig({
           resolve: {
             alias: {
               "@": fileURLToPath(new URL("./src", import.meta.url)),
+              "@infra": fileURLToPath(new URL("../../packages/infra/src", import.meta.url)),
             },
           },
           worker: {

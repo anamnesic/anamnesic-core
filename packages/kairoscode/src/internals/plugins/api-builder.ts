@@ -58,6 +58,7 @@ export type BuildPluginApiParams = {
       | "registerTrustedToolPolicy"
       | "registerToolMetadata"
       | "registerControlUiDescriptor"
+      | "registerBduiComponent"
       | "registerRuntimeLifecycle"
       | "registerAgentEventSubscription"
       | "setRunContext"
@@ -130,6 +131,7 @@ const noopEnqueueNextTurnInjection: kairosPluginApi["enqueueNextTurnInjection"] 
 const noopRegisterTrustedToolPolicy: kairosPluginApi["registerTrustedToolPolicy"] = () => {};
 const noopRegisterToolMetadata: kairosPluginApi["registerToolMetadata"] = () => {};
 const noopRegisterControlUiDescriptor: kairosPluginApi["registerControlUiDescriptor"] = () => {};
+const noopRegisterBduiComponent: kairosPluginApi["registerBduiComponent"] = () => {};
 const noopRegisterRuntimeLifecycle: kairosPluginApi["registerRuntimeLifecycle"] = () => {};
 const noopRegisterAgentEventSubscription: kairosPluginApi["registerAgentEventSubscription"] =
   () => {};
@@ -219,6 +221,7 @@ export function buildPluginApi(params: BuildPluginApiParams): kairosPluginApi {
     registerToolMetadata: handlers.registerToolMetadata ?? noopRegisterToolMetadata,
     registerControlUiDescriptor:
       handlers.registerControlUiDescriptor ?? noopRegisterControlUiDescriptor,
+    registerBduiComponent: handlers.registerBduiComponent ?? noopRegisterBduiComponent,
     registerRuntimeLifecycle: handlers.registerRuntimeLifecycle ?? noopRegisterRuntimeLifecycle,
     registerAgentEventSubscription:
       handlers.registerAgentEventSubscription ?? noopRegisterAgentEventSubscription,

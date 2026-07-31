@@ -17,7 +17,8 @@
     "outDir": "node_modules/.ts-dist",
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@infra/*": ["../../packages/infra/src/*"]
     }
   },
   "references": [],

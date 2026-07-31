@@ -5,6 +5,69 @@
 
 ---
 
+## BDUI — Backend-Driven UI Migration
+
+**Status: 🔄 EM PROGRESSO**
+
+### Schema e Tipos
+- [x] Definir schema de componentes BDUI (layout, página, ação, data binding)
+- [x] Criar tipos TypeBox no gateway protocol
+- [x] Criar tipos TS puros no `@kairos/infra`
+
+### Component Registry
+- [x] Adicionar `registerBduiComponent` ao Plugin SDK
+- [x] Adicionar `bduiComponents` ao PluginRegistry
+- [x] Validar e armazenar registrations no registry
+- [x] Exportar `PluginBduiComponentRegistration` no SDK público
+
+### Endpoints e Protocolo
+- [x] Criar endpoint HTTP `GET /ui/page/:id`
+- [x] Criar endpoint HTTP `GET /ui/registry`
+- [x] Criar endpoint HTTP `POST /ui/action`
+- [x] Estender Gateway Protocol com métodos `bdui.*`
+- [x] Adicionar schemas de params/result no protocol-schemas.ts
+- [x] Adicionar handlers HTTP no stage pipeline do servidor
+- [x] Adicionar métodos no gateway RPC (`bdui.getPage`, `bdui.registry`, `bdui.action`)
+- [x] Adicionar ao sistema de scopes de operador
+
+### Motor de Renderização
+- [x] Criar renderizador BDUI genérico no `@kairos/ui` (`bdui-renderer.ts`)
+- [x] Mapear schema BDUI → componentes Lit base (22 tipos)
+- [x] Suportar data binding reativo (BduiDataExpression + resolveExpression)
+- [x] Suportar ações declarativas (navigate, api, command, dispatch, link, callback)
+- [x] Suportar condições (show/hide baseado em estado)
+- [x] Suportar estilo inline (flex, width, height, padding, margin, gap, align, justify)
+- [x] Suportar breadcrumbs de navegação
+
+### Controller BDUI
+- [x] Criar fetcher de páginas BDUI (`loadBduiPage`)
+- [x] Criar action dispatcher (`dispatchBduiAction`)
+- [x] Suportar patch de estado (`applyBduiActionResponse`)
+- [x] Carregar registry (`loadBduiRegistry`)
+
+### Integração com Bootstrap
+- [x] Criar página BDUI de exemplo no servidor (`bdui-pages.ts`)
+- [x] Wire-up da página de exemplo nos handlers HTTP e RPC (`bdui.getPage`)
+- [x] Resolver de ações compartilhado RPC+HTTP (`server/bdui-actions.ts`); fake `toggle.extra` removido
+- [x] `bdui.getPage` async (RPC + HTTP) via `getBduiPage` compartilhado; página real `settings` com config snapshot redigido (`redactConfigSnapshot`)
+- [x] Página real `channels` lendo `config.channels` (redigido) + `registry.channels` (id, label, source, enabled, accounts)
+- [x] Página real `agents` via `listAgentsForGateway` (id, name, model, workspace, default)
+- [x] Adaptar Control UI (Lit) com componente host `<bdui-page>` na aba `bdui`
+- [ ] Migrar superfície existente (ex: dashboard cards)
+
+### Superfícies
+- [ ] Adaptar Control UI (Lit) para consumir BDUI
+- [x] Adaptar Desktop (SolidJS) para consumir BDUI (renderer nativo em `packages/desktop/src/bdui/` + shell dinâmico `/control/:pageId` com nav do registry)
+- [ ] Adaptar Web (Next.js) para consumir BDUI
+
+### Testes e Docs
+- [x] Testes de schema/validators BDUI + página demo (`bdui.schema.test.ts`)
+- [ ] Testes E2E de renderização BDUI
+- [x] ADR documentado
+- [ ] Guia de migração para plugins
+
+---
+
 ## 1. Forge Core (TypeScript/Node.js)
 
 - [x] Estruturar monorepo pnpm: `/core`, `/tui`, `/protocol`, `/plugins`, `/apps`

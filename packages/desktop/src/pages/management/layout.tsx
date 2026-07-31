@@ -1,25 +1,12 @@
-import { For, type ParentProps } from "solid-js"
+import { createResource, For, type ParentProps } from "solid-js"
 import { A, useLocation } from "@solidjs/router"
-
-const NAV = [
-  { href: "/management/dashboard", label: "Dashboard", icon: "⬡" },
-  { href: "/management/agents", label: "Agents", icon: "🤖" },
-  { href: "/management/projects", label: "Projects", icon: "📁" },
-  { href: "/management/workflows", label: "Workflows", icon: "⚙️" },
-  { href: "/management/skills", label: "Skills", icon: "⚡" },
-  { href: "/management/tools", label: "Tools", icon: "🔧" },
-  { href: "/management/extensions", label: "Extensions", icon: "🧩" },
-  { href: "/management/plugins", label: "Plugins", icon: "🔌" },
-  { href: "/management/providers", label: "Providers", icon: "🧠" },
-  { href: "/management/channels", label: "Channels", icon: "📡" },
-  { href: "/management/memory", label: "Memory", icon: "🗄️" },
-  { href: "/management/observers", label: "Observers", icon: "👁️" },
-  { href: "/management/vault", label: "Vault", icon: "🔒" },
-  { href: "/management/settings", label: "Settings", icon: "⚙️" },
-]
+import { useServer } from "@/context/server"
+import { loadBduiRegistry } from "@/bdui/controller"
 
 export default function ManagementLayout(props: ParentProps) {
   const loc = useLocation()
+  const server = useServer()
+  const [registry] = createResource(() => loadBduiRegistry(server.current?.http.url ?? ""))
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "var(--background-base)", color: "var(--text-base)", overflow: "hidden" }}>
@@ -46,14 +33,15 @@ export default function ManagementLayout(props: ParentProps) {
             "text-transform": "uppercase",
           }}
         >
-          Management
+          Control
         </div>
-        <For each={NAV}>
-          {(item) => {
-            const active = () => loc.pathname === item.href || loc.pathname.startsWith(item.href + "/")
+        <For each={registry()?.pages ?? []}>
+          {(page) => {
+            const href = `/control/${page.id}`
+            const active = () => loc.pathname === href || loc.pathname.startsWith(href + "/")
             return (
               <A
-                href={item.href}
+                href={href}
                 style={{
                   display: "flex",
                   "align-items": "center",
@@ -67,8 +55,7 @@ export default function ManagementLayout(props: ParentProps) {
                   transition: "background 0.15s, color 0.15s",
                 }}
               >
-                <span style={{ "font-size": "16px" }}>{item.icon}</span>
-                {item.label}
+                {page.label}
               </A>
             )
           }}

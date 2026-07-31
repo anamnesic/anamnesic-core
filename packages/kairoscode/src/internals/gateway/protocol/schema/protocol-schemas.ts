@@ -129,6 +129,18 @@ import {
   TickEventSchema,
 } from "./frames.js";
 import {
+  BduiActionParamsSchema,
+  BduiActionResponseSchema,
+  BduiComponentRegistrationSchema,
+  BduiComponentSchema,
+  BduiGetPageParamsSchema,
+  BduiGetPageResultSchema,
+  BduiLayoutSchema,
+  BduiPageSchema,
+  BduiRegistryParamsSchema,
+  BduiRegistrySchema,
+} from "./bdui.js";
+import {
   ChatAbortParamsSchema,
   ChatEventSchema,
   ChatHistoryParamsSchema,
@@ -398,6 +410,16 @@ export const ProtocolSchemas = {
   ChatEvent: ChatEventSchema,
   UpdateStatusParams: UpdateStatusParamsSchema,
   UpdateRunParams: UpdateRunParamsSchema,
+  BduiPage: BduiPageSchema,
+  BduiLayout: BduiLayoutSchema,
+  BduiComponent: BduiComponentSchema,
+  BduiComponentRegistration: BduiComponentRegistrationSchema,
+  BduiRegistry: BduiRegistrySchema,
+  BduiGetPageParams: BduiGetPageParamsSchema,
+  BduiGetPageResult: BduiGetPageResultSchema,
+  BduiActionResponse: BduiActionResponseSchema,
+  BduiActionParams: BduiActionParamsSchema,
+  BduiRegistryParams: BduiRegistryParamsSchema,
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,
 } satisfies Record<string, TSchema>;

@@ -333,6 +333,13 @@ import {
   type WizardStep,
   WizardStepSchema,
 } from "./schema.js";
+import {
+  type BduiActionParams,
+  BduiActionParamsSchema,
+  type BduiGetPageParams,
+  BduiGetPageParamsSchema,
+  BduiRegistryParamsSchema,
+} from "./schema.js";
 
 const ajv = new (AjvPkg as unknown as new (opts?: object) => import("ajv").default)({
   allErrors: true,
@@ -572,6 +579,9 @@ export const validatePluginApprovalResolveParams = ajv.compile<PluginApprovalRes
 export const validatePluginsUiDescriptorsParams = ajv.compile<PluginsUiDescriptorsParams>(
   PluginsUiDescriptorsParamsSchema,
 );
+export const validateBduiGetPageParams = ajv.compile<BduiGetPageParams>(BduiGetPageParamsSchema);
+export const validateBduiActionParams = ajv.compile<BduiActionParams>(BduiActionParamsSchema);
+export const validateBduiRegistryParams = ajv.compile<Record<string, never>>(BduiRegistryParamsSchema);
 export const validateExecApprovalsNodeGetParams = ajv.compile<ExecApprovalsNodeGetParams>(
   ExecApprovalsNodeGetParamsSchema,
 );

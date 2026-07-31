@@ -52,6 +52,7 @@ export type {
   PluginAgentEventSubscriptionRegistration,
   PluginAgentTurnPrepareEvent,
   PluginAgentTurnPrepareResult,
+  PluginBduiComponentRegistration,
   PluginControlUiDescriptor,
   PluginHeartbeatPromptContributionEvent,
   PluginHeartbeatPromptContributionResult,

@@ -93,6 +93,14 @@ export type PluginControlUiDescriptor = {
   requiredScopes?: OperatorScope[];
 };
 
+export type PluginBduiComponentRegistration = {
+  type: string;
+  schema: Record<string, unknown>;
+  defaultProps?: Record<string, unknown>;
+  category?: string;
+  description?: string;
+};
+
 export type PluginRuntimeLifecycleRegistration = {
   id: string;
   description?: string;

@@ -40,6 +40,7 @@ import {
   resolvePluginRoutePathContext,
   type PluginRoutePathContext,
 } from "./server/plugins-http/path-context.js";
+import { handleBduiHttpRequest, isBduiPath } from "./server/bdui-http.js";
 import type { PreauthConnectionBudget } from "./server/preauth-connection-budget.js";
 import type { ReadinessChecker } from "./server/readiness.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
@@ -582,6 +583,10 @@ export function createGatewayHttpServer(opts: {
         {
           name: "hooks",
           run: () => handleHooksRequest(req, res),
+        },
+        {
+          name: "bdui",
+          run: () => (isBduiPath(scopedRequestPath) ? handleBduiHttpRequest(req, res) : false),
         },
       ];
       if (openAiCompatEnabled && isOpenAiModelsPath(scopedRequestPath)) {

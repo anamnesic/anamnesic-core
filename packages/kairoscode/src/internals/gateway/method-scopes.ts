@@ -121,6 +121,8 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "talk.config",
     "agents.files.list",
     "agents.files.get",
+    "bdui.registry",
+    "bdui.getPage",
   ],
   [WRITE_SCOPE]: [
     "message.action",
@@ -130,6 +132,7 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "agent.wait",
     "wake",
     "talk.mode",
+    "bdui.action",
     "talk.realtime.session",
     "talk.realtime.relayAudio",
     "talk.realtime.relayMark",
