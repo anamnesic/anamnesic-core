@@ -73,6 +73,7 @@ deve funcionar offline, com o gateway kairoscode como sidecar local. Rotas HTTP
 | Página real `settings` (config snapshot redigido) | ✅ |
 | Página real `channels` (config + registry) | ✅ |
 | Página real `agents` (lista + model/workspace) | ✅ |
+| Página real `projects` (workspaces derivados de agents + defaults, contagem de agentes, flag default) | ✅ |
 | Página real `overview` (dashboard de landing com métricas reais do registry + health do config) | ✅ |
 | `bdui.getPage` async (RPC + HTTP) compartilhado | ✅ |
 | Decisão de transporte HTTP loopback registrada | ✅ |
@@ -99,6 +100,7 @@ deve funcionar offline, com o gateway kairoscode como sidecar local. Rotas HTTP
 | 2026-07-31 | Página real `settings` com `readConfigFileSnapshot()` + `redactConfigSnapshot()` (path, valid, issues/warnings, providers) — sem secrets |
 | 2026-07-31 | Página real `channels` lendo `config.channels` (redigido) + `registry.channels` (id, label, source, enabled, accounts) |
 | 2026-07-31 | Página real `agents` via `listAgentsForGateway` (id, name, model, workspace, default) |
+| 2026-07-31 | Página real `projects` via `buildProjectsPage` — workspaces derivados de `agents.list[].workspace` + `agents.defaults.workspace`, com contagem de agentes por workspace e flag default (sem migração de dados; gateway lista workspaces como o Linear lista projects, reusando config de agentes) |
 | 2026-07-31 | Página real `overview` (landing dashboard) via `buildOverviewPage` — métricas reais (agents, plugins loaded, tools, providers, channels configurados) + health card (config valid/issues/warnings, plugins errors, channel registrations, model providers) + quick-links; branch hard-coded removido do `buildBduiPage` (overview agora é async via `getBduiPage`) |
 | 2026-07-31 | `AGENTS.md` raiz: seção "BDUI Pages — Concept Parity (2026 products)" documentando paridade conceitual de skills/extensions/providers/channels com Claude Code / Cursor / Cline / n8n / OpenVSX |
 

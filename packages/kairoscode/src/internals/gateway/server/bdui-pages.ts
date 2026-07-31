@@ -248,6 +248,87 @@ function buildProvidersPage(): BduiPage {
   };
 }
 
+export function buildProjectsPage(snapshot: ConfigFileSnapshot): BduiPage {
+  const config = snapshot.runtimeConfig;
+  const agents = listAgentsForGateway(config).agents;
+  const defaultWorkspace = config.agents?.defaults?.workspace;
+  const seen = new Map<string, { workspace: string; agents: string[]; default: boolean }>();
+  if (defaultWorkspace) {
+    seen.set(defaultWorkspace, { workspace: defaultWorkspace, agents: [], default: true });
+  }
+  for (const agent of agents) {
+    const workspace = agent.workspace ?? defaultWorkspace ?? "-";
+    const entry = seen.get(workspace);
+    const agentId = agent.id;
+    if (entry) {
+      entry.agents.push(agentId);
+    } else {
+      seen.set(workspace, { workspace, agents: [agentId], default: workspace === defaultWorkspace });
+    }
+  }
+  const rows = [...seen.values()].map((entry) => ({
+    workspace: entry.workspace,
+    agents: entry.agents.length,
+    default: entry.default ? "yes" : "no",
+  }));
+  const defaultCount = rows.filter((row) => row.default === "yes").length;
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Projects",
+      subtitle: `${rows.length} workspaces`,
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Projects" }],
+      },
+      children: [
+        {
+          key: "projects-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-workspaces",
+              type: "metric",
+              props: { value: String(rows.length), label: "Workspaces" },
+            },
+            {
+              key: "metric-default",
+              type: "metric",
+              props: { value: String(defaultCount), label: "Default" },
+            },
+            {
+              key: "metric-agents",
+              type: "metric",
+              props: { value: String(agents.length), label: "Agents" },
+            },
+          ],
+        },
+        {
+          key: "projects-card",
+          type: "card",
+          props: { title: "Workspaces" },
+          children: [
+            {
+              key: "projects-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "workspace", label: "Workspace" },
+                  { key: "agents", label: "Agents" },
+                  { key: "default", label: "Default" },
+                ],
+                rows,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 export function buildOverviewPage(snapshot: ConfigFileSnapshot): BduiPage {
   const registry = getActivePluginRegistry();
   const plugins = registry?.plugins ?? [];
@@ -631,6 +712,9 @@ async function readRedactedConfigSnapshot(): Promise<ConfigFileSnapshot> {
 export async function getBduiPage(pageId: string): Promise<BduiPage> {
   if (pageId === "overview") {
     return buildOverviewPage(await readRedactedConfigSnapshot());
+  }
+  if (pageId === "projects") {
+    return buildProjectsPage(await readRedactedConfigSnapshot());
   }
   if (pageId === "settings") {
     return buildSettingsPage(await readRedactedConfigSnapshot());
