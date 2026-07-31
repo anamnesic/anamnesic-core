@@ -24,6 +24,7 @@ export function getBduiPageRegistry(): BduiPageEntry[] {
     { id: "projects", label: "Projects", icon: "folder" },
     { id: "commands", label: "Commands", icon: "command" },
     { id: "hooks", label: "Hooks", icon: "hook" },
+    { id: "services", label: "Services", icon: "service" },
     { id: "workflows", label: "Workflows", icon: "workflow" },
     { id: "skills", label: "Skills", icon: "skill" },
     { id: "tools", label: "Tools", icon: "tool" },
@@ -309,6 +310,81 @@ function buildProvidersPage(): BduiPage {
             },
             {
               key: "providers-reload",
+              type: "button",
+              props: { label: "Reload" },
+              actions: { onClick: { type: "dispatch", event: "reload" } },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function buildServicesPage(): BduiPage {
+  const registry = getActivePluginRegistry();
+  const services = registry?.services ?? [];
+  const discoveryServices = registry?.gatewayDiscoveryServices ?? [];
+  const rows = services.map((entry) => ({
+    id: entry.service.id,
+    plugin: entry.pluginName ?? entry.pluginId,
+    hasStop: entry.service.stop ? "yes" : "no",
+    source: entry.source,
+  }));
+  const withStop = rows.filter((row) => row.hasStop === "yes").length;
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Services",
+      subtitle: `${rows.length} plugin services registered`,
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Services" }],
+      },
+      children: [
+        {
+          key: "services-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-services",
+              type: "metric",
+              props: { value: String(rows.length), label: "Services" },
+            },
+            {
+              key: "metric-stoppable",
+              type: "metric",
+              props: { value: String(withStop), label: "Stoppable" },
+            },
+            {
+              key: "metric-discovery",
+              type: "metric",
+              props: { value: String(discoveryServices.length), label: "Discovery" },
+            },
+          ],
+        },
+        {
+          key: "services-card",
+          type: "card",
+          props: { title: "Registered" },
+          children: [
+            {
+              key: "services-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "id", label: "Service" },
+                  { key: "plugin", label: "Plugin" },
+                  { key: "hasStop", label: "Stop" },
+                  { key: "source", label: "Source" },
+                ],
+                rows,
+              },
+            },
+            {
+              key: "services-reload",
               type: "button",
               props: { label: "Reload" },
               actions: { onClick: { type: "dispatch", event: "reload" } },
@@ -883,6 +959,9 @@ export function buildBduiPage(pageId: string): BduiPage {
   }
   if (pageId === "hooks") {
     return buildHooksPage();
+  }
+  if (pageId === "services") {
+    return buildServicesPage();
   }
   if (pageId === "plugins") {
     return buildPluginsPage();

@@ -69,6 +69,10 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
   - [x] Sidecar: `bdui.getPage` `hooks` (hookName, plugin, priority, source — espelha hooks do Claude Code/Cline; contagem de eventos distintos + registrations typed/legacy)
   - [x] Sidecar: `bdui.action` `reload` (client-side refetch)
   - [x] Frontend: rota `/control/hooks` (shell genérico) → BDUI
+- [x] **Services** — serviços de plugin (`registry.services` + `registry.gatewayDiscoveryServices`)
+  - [x] Sidecar: `bdui.getPage` `services` (id, plugin, hasStop, source — espelha services runtime do plugin; contagem de discovery services)
+  - [x] Sidecar: `bdui.action` `reload` (client-side refetch)
+  - [x] Frontend: rota `/control/services` (shell genérico) → BDUI
 - [ ] **Skills** — listar/gerenciar (`skills`)
   - [ ] Sidecar: `bdui.getPage` `skills`
   - [ ] Sidecar: `bdui.action` (install, update, remove)
@@ -160,6 +164,6 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
 | Fase | Total | Feito | Restante |
 |---|---|---|---|
 | Fase 0 — Fundação | 10 | 5 | 5 |
-| Fase 1 — Páginas existentes | 16 | 11 | 5 |
+| Fase 1 — Páginas existentes | 17 | 12 | 5 |
 | Fase 2 — Sem página no desktop | 18 | 0 | 18 |
 | Fase 3 — Limpeza/qualidade | 5 | 0 | 5 |

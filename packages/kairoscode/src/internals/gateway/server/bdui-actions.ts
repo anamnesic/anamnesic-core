@@ -20,6 +20,7 @@ const pageDispatchHandlers: Record<string, PageDispatchHandlers> = {
   providers: { reload: reloadHandler("Providers") },
   commands: { reload: reloadHandler("Commands") },
   hooks: { reload: reloadHandler("Hooks") },
+  services: { reload: reloadHandler("Services") },
 };
 
 export function resolveBduiAction(params: BduiActionParams): BduiActionResponse {
