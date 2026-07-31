@@ -61,6 +61,10 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
   - [x] Sidecar: `bdui.getPage` `projects` (workspaces derivados de `agents.list[].workspace` + `agents.defaults.workspace`, com contagem de agentes e flag default)
   - [ ] Sidecar: `bdui.action` (create)
   - [x] Frontend: rota `/control/projects` → BDUI
+- [x] **Commands** — slash commands do gateway (`registry.commands`)
+  - [x] Sidecar: `bdui.getPage` `commands` (name, description, plugin, acceptsArgs, requireAuth — espelha `/help` do Claude Code)
+  - [x] Sidecar: `bdui.action` `reload` (client-side refetch)
+  - [x] Frontend: rota `/control/commands` (shell genérico) → BDUI
 - [ ] **Skills** — listar/gerenciar (`skills`)
   - [ ] Sidecar: `bdui.getPage` `skills`
   - [ ] Sidecar: `bdui.action` (install, update, remove)
@@ -152,6 +156,6 @@ Cada checkbox de funcionalidade só fecha quando **os 3 passos** estiverem pront
 | Fase | Total | Feito | Restante |
 |---|---|---|---|
 | Fase 0 — Fundação | 10 | 5 | 5 |
-| Fase 1 — Páginas existentes | 14 | 8 | 6 |
+| Fase 1 — Páginas existentes | 15 | 10 | 5 |
 | Fase 2 — Sem página no desktop | 18 | 0 | 18 |
 | Fase 3 — Limpeza/qualidade | 5 | 0 | 5 |

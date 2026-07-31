@@ -22,6 +22,7 @@ export function getBduiPageRegistry(): BduiPageEntry[] {
     { id: "overview", label: "Overview", icon: "dashboard" },
     { id: "agents", label: "Agents", icon: "bot" },
     { id: "projects", label: "Projects", icon: "folder" },
+    { id: "commands", label: "Commands", icon: "command" },
     { id: "workflows", label: "Workflows", icon: "workflow" },
     { id: "skills", label: "Skills", icon: "skill" },
     { id: "tools", label: "Tools", icon: "tool" },
@@ -34,6 +35,76 @@ export function getBduiPageRegistry(): BduiPageEntry[] {
     { id: "vault", label: "Vault", icon: "vault" },
     { id: "settings", label: "Settings", icon: "settings" },
   ];
+}
+
+function buildCommandsPage(): BduiPage {
+  const commands = getActivePluginRegistry()?.commands ?? [];
+  const rows = commands.map((entry) => ({
+    name: entry.command.name,
+    description: entry.command.description,
+    plugin: entry.pluginName ?? entry.pluginId,
+    acceptsArgs: entry.command.acceptsArgs ? "yes" : "no",
+    requireAuth: entry.command.requireAuth === false ? "no" : "yes",
+  }));
+  const withArgs = rows.filter((row) => row.acceptsArgs === "yes").length;
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Commands",
+      subtitle: `${rows.length} slash commands registered`,
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Commands" }],
+      },
+      children: [
+        {
+          key: "commands-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-commands",
+              type: "metric",
+              props: { value: String(rows.length), label: "Commands" },
+            },
+            {
+              key: "metric-args",
+              type: "metric",
+              props: { value: String(withArgs), label: "Accepts args" },
+            },
+          ],
+        },
+        {
+          key: "commands-card",
+          type: "card",
+          props: { title: "Registered" },
+          children: [
+            {
+              key: "commands-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "name", label: "Command" },
+                  { key: "description", label: "Description" },
+                  { key: "plugin", label: "Plugin" },
+                  { key: "acceptsArgs", label: "Args" },
+                  { key: "requireAuth", label: "Auth" },
+                ],
+                rows,
+              },
+            },
+            {
+              key: "commands-reload",
+              type: "button",
+              props: { label: "Reload" },
+              actions: { onClick: { type: "dispatch", event: "reload" } },
+            },
+          ],
+        },
+      ],
+    },
+  };
 }
 
 function buildPluginsPage(): BduiPage {
@@ -730,6 +801,9 @@ export async function getBduiPage(pageId: string): Promise<BduiPage> {
 }
 
 export function buildBduiPage(pageId: string): BduiPage {
+  if (pageId === "commands") {
+    return buildCommandsPage();
+  }
   if (pageId === "plugins") {
     return buildPluginsPage();
   }
