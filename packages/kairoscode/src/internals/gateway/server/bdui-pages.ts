@@ -23,6 +23,7 @@ export function getBduiPageRegistry(): BduiPageEntry[] {
     { id: "agents", label: "Agents", icon: "bot" },
     { id: "projects", label: "Projects", icon: "folder" },
     { id: "commands", label: "Commands", icon: "command" },
+    { id: "hooks", label: "Hooks", icon: "hook" },
     { id: "workflows", label: "Workflows", icon: "workflow" },
     { id: "skills", label: "Skills", icon: "skill" },
     { id: "tools", label: "Tools", icon: "tool" },
@@ -308,6 +309,82 @@ function buildProvidersPage(): BduiPage {
             },
             {
               key: "providers-reload",
+              type: "button",
+              props: { label: "Reload" },
+              actions: { onClick: { type: "dispatch", event: "reload" } },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function buildHooksPage(): BduiPage {
+  const registry = getActivePluginRegistry();
+  const typedHooks = registry?.typedHooks ?? [];
+  const legacyHooks = registry?.hooks ?? [];
+  const rows = typedHooks.map((hook) => ({
+    hook: hook.hookName,
+    plugin: hook.pluginId,
+    priority: String(hook.priority ?? 0),
+    source: hook.source,
+  }));
+  const distinctHooks = new Set(rows.map((row) => row.hook));
+  const legacyCount = legacyHooks.length;
+
+  return {
+    schema: "bdui/v1",
+    layout: {
+      type: "page",
+      title: "Hooks",
+      subtitle: `${distinctHooks.size} hook events, ${rows.length} registrations`,
+      navigation: {
+        breadcrumbs: [{ label: "Control" }, { label: "Hooks" }],
+      },
+      children: [
+        {
+          key: "hooks-metrics",
+          type: "row",
+          style: { gap: "12px" },
+          children: [
+            {
+              key: "metric-events",
+              type: "metric",
+              props: { value: String(distinctHooks.size), label: "Hook events" },
+            },
+            {
+              key: "metric-typed",
+              type: "metric",
+              props: { value: String(rows.length), label: "Typed registrations" },
+            },
+            {
+              key: "metric-legacy",
+              type: "metric",
+              props: { value: String(legacyCount), label: "Legacy" },
+            },
+          ],
+        },
+        {
+          key: "hooks-card",
+          type: "card",
+          props: { title: "Registered hooks" },
+          children: [
+            {
+              key: "hooks-table",
+              type: "table",
+              props: {
+                columns: [
+                  { key: "hook", label: "Hook" },
+                  { key: "plugin", label: "Plugin" },
+                  { key: "priority", label: "Priority" },
+                  { key: "source", label: "Source" },
+                ],
+                rows,
+              },
+            },
+            {
+              key: "hooks-reload",
               type: "button",
               props: { label: "Reload" },
               actions: { onClick: { type: "dispatch", event: "reload" } },
@@ -803,6 +880,9 @@ export async function getBduiPage(pageId: string): Promise<BduiPage> {
 export function buildBduiPage(pageId: string): BduiPage {
   if (pageId === "commands") {
     return buildCommandsPage();
+  }
+  if (pageId === "hooks") {
+    return buildHooksPage();
   }
   if (pageId === "plugins") {
     return buildPluginsPage();

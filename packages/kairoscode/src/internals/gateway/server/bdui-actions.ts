@@ -6,14 +6,20 @@ type BduiActionResponse = Static<typeof BduiActionResponseSchema>;
 type BduiAction = BduiActionParams["action"];
 type PageDispatchHandlers = Record<string, (state: Record<string, unknown>) => BduiActionResponse>;
 
+const reloadHandler = (label: string): ((state: Record<string, unknown>) => BduiActionResponse) =>
+  () => ({
+    schema: "bdui/v1",
+    action: "reload",
+    toast: { message: `${label} reloaded`, severity: "info" },
+  });
+
 const pageDispatchHandlers: Record<string, PageDispatchHandlers> = {
-  overview: {
-    reload: () => ({
-      schema: "bdui/v1",
-      action: "reload",
-      toast: { message: "Overview reloaded", severity: "info" },
-    }),
-  },
+  overview: { reload: reloadHandler("Overview") },
+  plugins: { reload: reloadHandler("Plugins") },
+  tools: { reload: reloadHandler("Tools") },
+  providers: { reload: reloadHandler("Providers") },
+  commands: { reload: reloadHandler("Commands") },
+  hooks: { reload: reloadHandler("Hooks") },
 };
 
 export function resolveBduiAction(params: BduiActionParams): BduiActionResponse {
