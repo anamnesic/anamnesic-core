@@ -1,6 +1,8 @@
 packages:
-  - "packages/**"
-  - "apps/*"
+  - "terminal"
+  - "web/*"
+  - "terminal/*"
+  - "terminal/packages/*"
 
 catalog:
   # Core runtime
@@ -67,13 +69,22 @@ catalog:
   '@types/cross-spawn': ^6.0.6
   '@types/luxon': ^3.7.1
   '@types/node': ^20.19.39
+  '@types/semver': ^7.5.8
   '@typescript/native-preview': ^7.0.0-dev.20260506.1
   typescript: ^5.9.3
 
 allowBuilds:
+  '@parcel/watcher': set this to true or false
   '@vscode/vsce-sign': true
+  bcrypt: set this to true or false
   esbuild: true
   keytar: true
+  lmdb: set this to true or false
+  msgpackr-extract: set this to true or false
   node-pty: true
+  protobufjs: set this to true or false
   sharp: true
   sqlite3: true
+  tree-sitter-bash: set this to true or false
+  tree-sitter-powershell: set this to true or false
+  workerd: set this to true or false

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/bun/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": [],
+    "noUncheckedIndexedAccess": false,
+    "customConditions": ["browser"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tui/*": ["./src/cli/cmd/tui/*"],
+      "@test/*": ["./test/*"],
+      "@kairos-ai/core/*": ["./src/*"],
+      "@kairos-ai/plugin/*": ["./packages/plugins/src/*"],
+      "@kairos-ai/sdk": ["./packages/sdk/src/index.ts"],
+      "@kairos-ai/sdk/*": ["./packages/sdk/src/*"],
+      "effect/unstable/httpapi": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/index.js"],
+      "effect/unstable/http": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/index.js"],
+      "effect/unstable/process": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/index.js"],
+      "effect/unstable/process/*": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/index.js"],
+      "effect/unstable/*": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/index.js"],
+      "effect/FileSystem": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/FileSystem.js"],
+      "effect/Path": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/Path.js"],
+      "effect/Terminal": ["../../node_modules/.pnpm/@effect+platform@0.96.1_effect@3.21.2/node_modules/@effect/platform/dist/esm/Terminal.js"]
+    },
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "transform": "@effect/language-service/transform",
+        "namespaceImportPackages": ["effect", "@effect/*"]
+      }
+    ]
+  },
+  "include": ["src", "test"]
+}

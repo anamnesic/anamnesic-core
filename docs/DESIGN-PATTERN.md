@@ -196,7 +196,7 @@ packages:
 
 ### Fase 3 — Separar os apps
 - [ ] Mover `app/` → `apps/web/` (Next.js)
-- [ ] Mover `src-tauri/` → `apps/desktop/`
+- [x] Mover `src-tauri/` → `apps/desktop/` (substituído: apps nativos + shell Tauri removidos; `apps/desktop/` → `apps/web/`, TS-only)
 - [ ] Mover `src/interfaces/cli/` → `apps/cli/`
 - [ ] Mover `sdks/vscode/` + `src/interfaces/dashboard/` → `apps/vscode/`
 - [ ] Mover `src/interfaces/api/` → `apps/api/`
