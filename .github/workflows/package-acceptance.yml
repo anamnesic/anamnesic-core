@@ -431,7 +431,7 @@ jobs:
   docker_acceptance:
     name: Docker product acceptance
     needs: resolve_package
-    uses: ./.github/workflows/kairos-live-and-e2e-checks-reusable.yml
+    uses: ./.github/workflows/openclaw-live-and-e2e-checks-reusable.yml
     with:
       ref: ${{ inputs.workflow_ref }}
       include_repo_e2e: false

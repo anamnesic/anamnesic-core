@@ -355,7 +355,7 @@ jobs:
       contents: read
       packages: write
       pull-requests: read
-    uses: ./.github/workflows/kairos-live-and-e2e-checks-reusable.yml
+    uses: ./.github/workflows/openclaw-live-and-e2e-checks-reusable.yml
     with:
       ref: ${{ needs.preflight.outputs.checkout_revision }}
       include_repo_e2e: false
