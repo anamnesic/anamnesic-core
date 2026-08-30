@@ -1,117 +1,128 @@
 export type TabType = 
-  | 'chat' 
-  | 'agents' 
-  | 'channels' 
-  | 'tools' 
-  | 'automation' 
-  | 'memory' 
-  | 'logs' 
-  | 'config';
+  | 'runtime'       // Plan-Act-Verify Execution & Interactive Agent Runs
+  | 'gateway'       // Sessions, Multi-Channel Gateway & Routing (REST/WS/RPC)
+  | 'models'        // Model Gateway & Router (Capabilities, Latency, Fallbacks)
+  | 'tools'         // Tool Gateway & MCP Server Hub (L0-L4 Risk Matrix)
+  | 'policy'        // Deterministic Policy Engine & Permission Broker
+  | 'approvals'     // Pending High-Risk Approval Queue
+  | 'speclock'      // Spec-Locked Execution & AST Contract Guard
+  | 'transactions'  // Transactional Workspace Mutation & Rollback
+  | 'verification'  // Multi-Stage Verification Pipeline (Build/Test/Lint/Diff)
+  | 'audit'         // Structured Audit Log & Replayable Event Stream
+  | 'config';       // Control Plane Config & SecretRef Manager
 
-export interface Agent {
+export type AgentState = 
+  | 'INITIALIZED'
+  | 'CONTEXT_BUILD'
+  | 'PLANNING'
+  | 'ACTION_SELECTION'
+  | 'POLICY_CHECK'
+  | 'APPROVAL_REQUIRED'
+  | 'WAITING'
+  | 'EXECUTE'
+  | 'VERIFY'
+  | 'REPAIR'
+  | 'COMPLETE'
+  | 'ERROR';
+
+export type RiskLevel = 'L0' | 'L1' | 'L2' | 'L3' | 'L4';
+
+export interface PlanStep {
   id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  color: string;
-  model: string;
-  fallbackModel: string;
-  systemPrompt: string;
-  tools: string[];
-  permissionMode: 'interactive' | 'owner-only' | 'always-allow' | 'yolo';
-  contextLimit: number;
-  tokensUsed: number;
-  temperature: number;
-  description: string;
-  status: 'idle' | 'running' | 'paused';
+  order: number;
+  objective: string;
+  intendedMutations: string[];
+  validationStrategy: string;
+  expectedOutcome: string;
+  status: 'pending' | 'in_progress' | 'passed' | 'failed' | 'repaired';
 }
 
-export interface ToolCall {
-  id: string;
+export interface SpecLockSymbol {
   name: string;
-  args: Record<string, any>;
-  result?: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'requires_approval';
-  durationMs?: number;
+  kind: 'function' | 'struct' | 'trait' | 'interface' | 'endpoint';
+  parameters: Record<string, string>;
+  returns: string;
+  status: 'locked' | 'matched' | 'drift_detected';
+  file: string;
 }
 
-export interface ChatMessage {
+export interface SpecLock {
   id: string;
-  sender: 'user' | 'assistant' | 'system';
-  agentId?: string;
-  agentName?: string;
-  content: string;
+  name: string;
+  workspaceId: string;
+  targetFiles: string[];
+  symbols: SpecLockSymbol[];
+  createdAt: string;
+  enforced: boolean;
+}
+
+export interface MutationOperation {
+  id: string;
+  path: string;
+  type: 'create' | 'modify' | 'delete' | 'patch';
+  diff: string;
+  specLockCompliant: boolean;
+  status: 'staged' | 'committed' | 'rolled_back';
+}
+
+export interface MutationTransaction {
+  id: string;
+  workspaceId: string;
+  snapshotId: string;
+  runId: string;
+  operations: MutationOperation[];
+  status: 'active' | 'validating' | 'committed' | 'rolled_back';
   timestamp: string;
-  toolCalls?: ToolCall[];
-  tokenCount?: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
-  isStreaming?: boolean;
 }
 
-export interface Session {
-  id: string;
-  agentId: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  messages: ChatMessage[];
-  tokenUsage: number;
-  maxTokens: number;
-  tags: string[];
-}
-
-export interface Channel {
+export interface VerificationStage {
   id: string;
   name: string;
-  type: 'discord' | 'telegram' | 'slack' | 'matrix' | 'whatsapp' | 'signal' | 'webchat';
-  status: 'connected' | 'connecting' | 'disconnected' | 'error';
-  targetAgent: string;
-  lastActive: string;
-  messagesHandled: number;
-  config: {
-    webhookUrl?: string;
-    botUsername?: string;
-    allowedRooms?: string[];
-    allowMentionsOnly?: boolean;
-  };
+  type: 'spec_check' | 'format' | 'compile' | 'lint' | 'test' | 'diff_analysis' | 'security_scan';
+  command: string;
+  exitCode?: number;
+  status: 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
+  durationMs?: number;
+  diagnostics?: string;
 }
 
-export interface DevicePairing {
-  requestId: string;
-  deviceName: string;
-  clientIp: string;
-  requestedRole: 'operator' | 'node' | 'viewer';
-  requestedScopes: string[];
-  createdAt: string;
-  status: 'pending' | 'approved' | 'revoked';
+export interface VerificationPipeline {
+  id: string;
+  runId: string;
+  stages: VerificationStage[];
+  status: 'idle' | 'running' | 'passed' | 'failed';
+  repairAttempt: number;
+  maxRepairCycles: number;
 }
 
-export interface CronJob {
+export interface ModelCapability {
   id: string;
   name: string;
-  schedule: string;
-  agentId: string;
-  prompt: string;
-  deliveryMode: 'announce' | 'webhook' | 'none';
-  targetChannel?: string;
-  enabled: boolean;
-  lastRun?: string;
-  nextRun: string;
-  lastStatus?: 'success' | 'failed';
-  runCount: number;
+  provider: 'nvidia_nim' | 'ollama' | 'openrouter' | 'anthropic' | 'openai' | 'local_llamacpp';
+  contextLength: number;
+  maxOutputTokens: number;
+  tools: boolean;
+  vision: boolean;
+  reasoning: boolean;
+  structuredOutput: boolean;
+  latencyMs: number;
+  costPer1kTokens: number;
+  reliabilityScore: number;
+  status: 'online' | 'degraded' | 'offline';
+  localAvailable: boolean;
 }
 
 export interface ToolDefinition {
   id: string;
   name: string;
-  category: 'system' | 'fs' | 'git' | 'web' | 'ai' | 'automation';
+  category: 'fs' | 'shell' | 'git' | 'mcp' | 'network' | 'database' | 'system';
   description: string;
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  risk: RiskLevel;
+  permissions: string[];
+  source: 'native' | 'mcp_server' | 'internal_rpc';
+  mcpServerName?: string;
   enabled: boolean;
-  parameters: {
+  inputSchema: {
     name: string;
     type: string;
     required: boolean;
@@ -119,31 +130,108 @@ export interface ToolDefinition {
   }[];
 }
 
-export interface DreamEntry {
+export interface PolicyRule {
+  id: string;
+  name: string;
+  description: string;
+  matchIdentity: string;
+  matchTool: string;
+  matchRisk: RiskLevel[];
+  action: 'ALLOW' | 'REQUIRE_APPROVAL' | 'DENY';
+  enabled: boolean;
+  order: number;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  runId: string;
+  agentName: string;
+  toolId: string;
+  risk: RiskLevel;
+  arguments: Record<string, any>;
+  justification: string;
+  timestamp: string;
+  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  targetResource: string;
+}
+
+export interface AuditEvent {
   id: string;
   timestamp: string;
+  type: string;
+  identity: string;
+  sessionId: string;
+  agentId: string;
+  tool?: string;
+  resource?: string;
+  result: 'ALLOWED' | 'DENIED' | 'APPROVED' | 'SUCCESS' | 'FAILURE' | 'REPAIR';
+  details: Record<string, any>;
+}
+
+export interface AgentRunBudget {
+  maxModelCalls: number;
+  modelCallsUsed: number;
+  maxToolCalls: number;
+  toolCallsUsed: number;
+  maxRepairCycles: number;
+  repairCyclesUsed: number;
+  maxChangedFiles: number;
+  changedFilesCount: number;
+  maxRuntimeSeconds: number;
+  runtimeSecondsUsed: number;
+  tokenBudget: number;
+  tokensUsed: number;
+}
+
+export interface AgentRun {
+  id: string;
+  sessionId: string;
+  agentId: string;
+  task: string;
+  state: AgentState;
+  modelId: string;
+  plan: PlanStep[];
+  currentStepIndex: number;
+  budget: AgentRunBudget;
+  verification: VerificationPipeline;
+  transactionId?: string;
+  approvals: ApprovalRequest[];
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  color: string;
+  defaultModel: string;
+  fallbackModel: string;
+  systemPrompt: string;
+  assignedTools: string[];
+  permissions: string[];
+  isolationBackend: 'local_sandbox' | 'docker_isolated' | 'host_restricted';
+}
+
+export interface Session {
+  id: string;
   title: string;
-  summary: string;
-  insights: string[];
-  prunedSessionsCount: number;
-  distilledKnowledge: string[];
+  workspacePath: string;
+  identity: string;
+  createdAt: string;
+  activeRunId?: string;
+  runs: AgentRun[];
 }
 
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG' | 'TRACE';
-  source: string;
-  message: string;
-  details?: Record<string, any>;
-}
-
-export interface GatewayHealth {
-  status: 'healthy' | 'degraded' | 'offline';
-  uptimeSeconds: number;
+export interface ControlPlaneHealth {
+  gatewayStatus: 'HEALTHY' | 'DEGRADED' | 'OFFLINE';
+  activeSessions: number;
+  activeAgentRuns: number;
+  pendingApprovals: number;
+  activeTransactions: number;
+  connectedMcpServers: number;
   memoryUsageMb: number;
-  activeSockets: number;
-  pairedDevicesCount: number;
-  rpcLatencyMs: number;
-  version: string;
+  uptimeSeconds: number;
+  invariantStatus: 'ALL_PASS' | 'VIOLATION_DETECTED';
 }

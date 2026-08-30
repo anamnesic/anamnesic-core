@@ -1,501 +1,701 @@
-import { Agent, Session, Channel, DevicePairing, CronJob, ToolDefinition, DreamEntry, LogEntry, GatewayHealth } from '../types';
+import { 
+  Agent, 
+  Session, 
+  ModelCapability, 
+  ToolDefinition, 
+  PolicyRule, 
+  ApprovalRequest, 
+  AuditEvent, 
+  SpecLock, 
+  MutationTransaction, 
+  VerificationPipeline, 
+  ControlPlaneHealth 
+} from '../types';
 
 export const INITIAL_AGENTS: Agent[] = [
   {
-    id: 'coder',
-    name: 'Forge Coder',
-    role: 'Autonomous Software Engineer',
-    avatar: '💻',
+    id: 'agt-core-architect',
+    name: 'Kernel Orchestrator',
+    role: 'Autonomous System Runtime Engineer',
+    avatar: '⚙️',
     color: 'emerald',
-    model: 'anthropic/claude-3-7-sonnet',
-    fallbackModel: 'google/gemini-2.0-flash',
-    systemPrompt: 'You are Forge Coder, a precision autonomous software engineer inside KAIROS. You execute terminal commands, edit source files, perform AST refactoring, and test code changes iteratively before reporting results.',
-    tools: ['bash', 'fs.read', 'fs.write', 'git.commit', 'lsp.diagnostics', 'diff.patch'],
-    permissionMode: 'interactive',
-    contextLimit: 200000,
-    tokensUsed: 42150,
-    temperature: 0.2,
-    description: 'Expert coding assistant with access to bash sandbox, git operations, and LSP AST navigation.',
-    status: 'idle'
+    defaultModel: 'nvidia/nim-qwen-2.5-coder-32b',
+    fallbackModel: 'ollama/llama-3.3-70b-instruct',
+    systemPrompt: `You are the Kernel Orchestrator inside anamnesic-core v2.4.0. You execute autonomous engineering workflows strictly adhering to PLAN → ACT → VERIFY lifecycle. You enforce Spec Locks, respect Transactional Workspace boundaries, and resolve compiler diagnostics via bounded repair loops.`,
+    assignedTools: ['fs.read', 'fs.write', 'shell.execute', 'git.diff', 'git.commit', 'spec.check', 'verification.run'],
+    permissions: ['filesystem.read', 'filesystem.write', 'shell.execute', 'git.read', 'git.commit', 'verification.execute'],
+    isolationBackend: 'local_sandbox'
   },
   {
-    id: 'guardian',
-    name: 'Security Sentinel',
-    role: 'Vulnerability & Policy Triage',
+    id: 'agt-security-sentinel',
+    name: 'Policy & Sandbox Guardian',
+    role: 'Permission Broker & AST Validator',
     avatar: '🛡️',
     color: 'amber',
-    model: 'google/gemini-2.0-flash',
+    defaultModel: 'google/gemini-2.0-flash',
     fallbackModel: 'openai/gpt-4o-mini',
-    systemPrompt: 'You inspect incoming dependencies, audit AST code modifications, scan for secret leaks, and enforce permission boundaries across agent actions.',
-    tools: ['secret.scan', 'semgrep.audit', 'fs.read', 'policy.check'],
-    permissionMode: 'always-allow',
-    contextLimit: 128000,
-    tokensUsed: 18900,
-    temperature: 0.1,
-    description: 'Autonomous security sentinel scanning for CVEs, token leakage, and unauthorized elevated executions.',
-    status: 'idle'
+    systemPrompt: `You inspect agent actions against invariant policies (INV-01 to INV-10). You detect path escapes (../), secret leaks, unverified sudo executions, and unauthorized external mutations.`,
+    assignedTools: ['policy.evaluate', 'secret.scan', 'spec.validate', 'fs.read'],
+    permissions: ['policy.read', 'secret.scan', 'filesystem.read'],
+    isolationBackend: 'host_restricted'
   },
   {
-    id: 'summarizer',
-    name: 'Memory Synthesizer',
-    role: 'Context & Dream Worker',
-    avatar: '🧠',
+    id: 'agt-contract-verifier',
+    name: 'Spec Lock Verifier',
+    role: 'AST & Symbol Contract Auditor',
+    avatar: '📐',
     color: 'purple',
-    model: 'openai/gpt-4o',
-    fallbackModel: 'deepseek/deepseek-r1',
-    systemPrompt: 'You analyze session transcripts when context pressure exceeds 90%, synthesize key facts into LanceDB active memory, and write nightly Dream Diary logs.',
-    tools: ['memory.store', 'memory.search', 'lancedb.index', 'fs.read'],
-    permissionMode: 'always-allow',
-    contextLimit: 128000,
-    tokensUsed: 31200,
-    temperature: 0.4,
-    description: 'Compresses long transcripts, updates vector memory stores, and preserves long-term agent identity.',
-    status: 'idle'
+    defaultModel: 'anthropic/claude-3-7-sonnet',
+    fallbackModel: 'google/gemini-2.0-flash',
+    systemPrompt: `You parse Rust and TypeScript ASTs to verify symbol names, argument types, return signatures, and public API stability before transactions are committed.`,
+    assignedTools: ['spec.lock', 'spec.check', 'ast.parse', 'diff.verify'],
+    permissions: ['spec.manage', 'filesystem.read'],
+    isolationBackend: 'local_sandbox'
   },
   {
-    id: 'triage',
-    name: 'Gateway Orchestrator',
-    role: 'Multi-Channel Dispatcher',
-    avatar: '⚡',
+    id: 'agt-mcp-orchestrator',
+    name: 'MCP Integration Worker',
+    role: 'Multi-Server MCP Gateway Adapter',
+    avatar: '🔌',
     color: 'sky',
-    model: 'google/gemini-2.0-flash',
-    fallbackModel: 'anthropic/claude-3-5-haiku',
-    systemPrompt: 'You normalize incoming messages across Discord, Slack, Matrix, and Telegram, resolve agent routing keys, and deliver responses back to the origin channel.',
-    tools: ['channel.send', 'session.spawn', 'user.lookup'],
-    permissionMode: 'owner-only',
-    contextLimit: 128000,
-    tokensUsed: 14500,
-    temperature: 0.3,
-    description: 'Routes inbound messages from all linked chat channels and supervises multi-agent delegation.',
-    status: 'idle'
+    defaultModel: 'openai/gpt-4o',
+    fallbackModel: 'deepseek/deepseek-r1',
+    systemPrompt: `You bridge native tools with external Model Context Protocol (MCP) servers across GitHub, SQLite, Filesystem, and Docker daemons.`,
+    assignedTools: ['mcp.invoke', 'mcp.discover', 'network.http.read'],
+    permissions: ['mcp.invoke', 'network.http.read'],
+    isolationBackend: 'docker_isolated'
   }
 ];
 
-export const INITIAL_SESSIONS: Session[] = [
+export const INITIAL_MODELS: ModelCapability[] = [
   {
-    id: 'sess-bootstrap-892',
-    agentId: 'coder',
-    title: 'Migrate Gateway WebSocket Transports & Effect runtime',
-    createdAt: '2026-08-30 09:15:00',
-    updatedAt: '2026-08-30 11:42:10',
-    tokenUsage: 42150,
-    maxTokens: 200000,
-    tags: ['refactor', 'gateway', 'effect-v4'],
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'user',
-        content: 'Check the status of the KAIROS Gateway WebSocket layer and ensure all channel adapters handle reconnect backoffs gracefully.',
-        timestamp: '11:38:12'
-      },
-      {
-        id: 'msg-2',
-        sender: 'assistant',
-        agentId: 'coder',
-        agentName: 'Forge Coder',
-        content: 'I will analyze the channel reconnect loops and inspect the WebSocket heartbeat diagnostics across all registered adapters.',
-        timestamp: '11:38:15',
-        toolCalls: [
-          {
-            id: 'tc-1',
-            name: 'bash',
-            args: { command: 'kairos gateway doctor --check=channels,ws' },
-            result: '✓ Gateway loopback bound to 0.0.0.0:18789\n✓ Discord socket: CONNECTED (ping: 28ms)\n✓ Telegram polling: ACTIVE\n✓ Slack RTM: CONNECTED\n✓ Memory engine (LanceDB): OK (6,420 vectors)',
-            status: 'completed',
-            durationMs: 310
-          },
-          {
-            id: 'tc-2',
-            name: 'fs.read',
-            args: { path: '/gateway/protocol.ts', lines: '1-45' },
-            result: '// KAIROS Gateway Protocol v2.4\nexport interface GatewayEnvelope<T> {\n  id: string;\n  topic: "chat" | "presence" | "cron" | "doctor";\n  payload: T;\n  timestamp: number;\n}',
-            status: 'completed',
-            durationMs: 45
-          }
-        ],
-        tokenCount: { prompt: 1420, completion: 480, total: 1900 }
-      },
-      {
-        id: 'msg-3',
-        sender: 'user',
-        content: 'Looks clean. Run a quick verification test on the exec approvals policy.',
-        timestamp: '11:41:00'
-      },
-      {
-        id: 'msg-4',
-        sender: 'assistant',
-        agentId: 'coder',
-        agentName: 'Forge Coder',
-        content: 'I evaluated the exec approvals subsystem. High-risk actions (`rm -rf`, `curl | bash`, token rotation) are strictly bound to Interactive confirmation mode. All safe primitives (read, compile, lint) operate seamlessly.',
-        timestamp: '11:42:10',
-        tokenCount: { prompt: 2100, completion: 310, total: 2410 }
-      }
-    ]
+    id: 'nvidia/nim-qwen-2.5-coder-32b',
+    name: 'NVIDIA NIM Qwen 2.5 Coder 32B',
+    provider: 'nvidia_nim',
+    contextLength: 131072,
+    maxOutputTokens: 8192,
+    tools: true,
+    vision: false,
+    reasoning: true,
+    structuredOutput: true,
+    latencyMs: 120,
+    costPer1kTokens: 0.0008,
+    reliabilityScore: 0.99,
+    status: 'online',
+    localAvailable: true
   },
   {
-    id: 'sess-sec-triage-401',
-    agentId: 'guardian',
-    title: 'SecretRef Audit & Credential Boundary Validation',
-    createdAt: '2026-08-30 08:00:00',
-    updatedAt: '2026-08-30 10:15:30',
-    tokenUsage: 18900,
-    maxTokens: 128000,
-    tags: ['security', 'audit', 'secretref'],
-    messages: [
-      {
-        id: 'msg-s1',
-        sender: 'user',
-        content: 'Run an audit across all active plugin configs to ensure zero hardcoded API keys exist in plain JSON.',
-        timestamp: '10:12:00'
-      },
-      {
-        id: 'msg-s2',
-        sender: 'assistant',
-        agentId: 'guardian',
-        agentName: 'Security Sentinel',
-        content: 'Audit complete. All sensitive tokens are securely encapsulated within dynamic `SecretRef` objects mapped to container environment variables.',
-        timestamp: '10:15:30',
-        toolCalls: [
-          {
-            id: 'tc-sec-1',
-            name: 'secret.scan',
-            args: { target: '/config/plugins/' },
-            result: 'Scanned 14 plugin manifests.\n✓ 0 plain secrets leaked.\n✓ 14 SecretRef mappings verified.',
-            status: 'completed',
-            durationMs: 180
-          }
-        ],
-        tokenCount: { prompt: 950, completion: 210, total: 1160 }
-      }
-    ]
-  }
-];
-
-export const INITIAL_CHANNELS: Channel[] = [
-  {
-    id: 'ch-discord-core',
-    name: 'Discord Dev Ops',
-    type: 'discord',
-    status: 'connected',
-    targetAgent: 'coder',
-    lastActive: '2 mins ago',
-    messagesHandled: 1420,
-    config: {
-      botUsername: 'ForgeBot#4412',
-      allowedRooms: ['#dev-agent', '#prs', '#ops'],
-      allowMentionsOnly: true
-    }
+    id: 'ollama/llama-3.3-70b-instruct',
+    name: 'Ollama LLaMA 3.3 70B Local',
+    provider: 'ollama',
+    contextLength: 131072,
+    maxOutputTokens: 4096,
+    tools: true,
+    vision: false,
+    reasoning: true,
+    structuredOutput: true,
+    latencyMs: 380,
+    costPer1kTokens: 0.0,
+    reliabilityScore: 0.98,
+    status: 'online',
+    localAvailable: true
   },
   {
-    id: 'ch-telegram-alerts',
-    name: 'Telegram Emergency Ops',
-    type: 'telegram',
-    status: 'connected',
-    targetAgent: 'guardian',
-    lastActive: '12 mins ago',
-    messagesHandled: 384,
-    config: {
-      botUsername: '@KairosGuardianBot',
-      allowMentionsOnly: false
-    }
+    id: 'google/gemini-2.0-flash',
+    name: 'Google Gemini 2.0 Flash',
+    provider: 'openrouter',
+    contextLength: 1048576,
+    maxOutputTokens: 8192,
+    tools: true,
+    vision: true,
+    reasoning: true,
+    structuredOutput: true,
+    latencyMs: 95,
+    costPer1kTokens: 0.0001,
+    reliabilityScore: 0.995,
+    status: 'online',
+    localAvailable: false
   },
   {
-    id: 'ch-slack-team',
-    name: 'Slack Internal Core',
-    type: 'slack',
-    status: 'connected',
-    targetAgent: 'triage',
-    lastActive: ' Just now',
-    messagesHandled: 2910,
-    config: {
-      botUsername: 'kairos-dispatch',
-      allowedRooms: ['#general', '#eng-support']
-    }
+    id: 'anthropic/claude-3-7-sonnet',
+    name: 'Anthropic Claude 3.7 Sonnet',
+    provider: 'anthropic',
+    contextLength: 200000,
+    maxOutputTokens: 8192,
+    tools: true,
+    vision: true,
+    reasoning: true,
+    structuredOutput: true,
+    latencyMs: 410,
+    costPer1kTokens: 0.003,
+    reliabilityScore: 0.992,
+    status: 'online',
+    localAvailable: false
   },
   {
-    id: 'ch-matrix-crypto',
-    name: 'Matrix Encrypted Hub',
-    type: 'matrix',
-    status: 'connected',
-    targetAgent: 'coder',
-    lastActive: '45 mins ago',
-    messagesHandled: 91,
-    config: {
-      botUsername: '@kairos:matrix.org'
-    }
-  },
-  {
-    id: 'ch-whatsapp-bridge',
-    name: 'WhatsApp Business Relay',
-    type: 'whatsapp',
-    status: 'disconnected',
-    targetAgent: 'triage',
-    lastActive: '2 days ago',
-    messagesHandled: 12,
-    config: {
-      botUsername: '+1 (555) 019-4829'
-    }
-  }
-];
-
-export const INITIAL_PAIRINGS: DevicePairing[] = [
-  {
-    requestId: 'req-pair-7819',
-    deviceName: 'MacBook Pro (M3 Max - Local)',
-    clientIp: '127.0.0.1',
-    requestedRole: 'operator',
-    requestedScopes: ['chat:write', 'config:write', 'exec:run'],
-    createdAt: '2026-08-30 11:30:00',
-    status: 'approved'
-  },
-  {
-    requestId: 'req-pair-9042',
-    deviceName: 'Mobile Safari (iOS 19.2 - Tailscale)',
-    clientIp: '100.84.12.4',
-    requestedRole: 'viewer',
-    requestedScopes: ['chat:read', 'logs:tail'],
-    createdAt: '2026-08-30 12:05:14',
-    status: 'pending'
-  }
-];
-
-export const INITIAL_CRON_JOBS: CronJob[] = [
-  {
-    id: 'cron-dream-nightly',
-    name: 'Autonomous Dream & Knowledge Distillation',
-    schedule: '0 3 * * *',
-    agentId: 'summarizer',
-    prompt: 'Review transcript sessions from the past 24 hours, extract key architectural decisions, update LanceDB active memory, and log a concise summary to the Dream Diary.',
-    deliveryMode: 'none',
-    enabled: true,
-    lastRun: '2026-08-30 03:00:00',
-    nextRun: '2026-08-31 03:00:00',
-    lastStatus: 'success',
-    runCount: 48
-  },
-  {
-    id: 'cron-pr-recap',
-    name: 'GitHub Daily PR & Issue Triage Recap',
-    schedule: '0 9 * * 1-5',
-    agentId: 'coder',
-    prompt: 'Fetch open pull requests, detect potential regressions or merge conflicts, and publish a structured executive brief to Discord #dev-agent.',
-    deliveryMode: 'announce',
-    targetChannel: 'ch-discord-core',
-    enabled: true,
-    lastRun: '2026-08-30 09:00:00',
-    nextRun: '2026-08-31 09:00:00',
-    lastStatus: 'success',
-    runCount: 112
-  },
-  {
-    id: 'cron-health-sweep',
-    name: 'Gateway Liveness & Memory Leak Sweep',
-    schedule: '*/30 * * * *',
-    agentId: 'guardian',
-    prompt: 'Check heap allocations, active WebSocket heartbeat counts, and verify response latency on all plugin endpoints.',
-    deliveryMode: 'none',
-    enabled: true,
-    lastRun: '2026-08-30 12:00:00',
-    nextRun: '2026-08-30 12:30:00',
-    lastStatus: 'success',
-    runCount: 1420
+    id: 'deepseek/deepseek-r1',
+    name: 'DeepSeek R1 Reasoning',
+    provider: 'openrouter',
+    contextLength: 64000,
+    maxOutputTokens: 8192,
+    tools: true,
+    vision: false,
+    reasoning: true,
+    structuredOutput: true,
+    latencyMs: 540,
+    costPer1kTokens: 0.00055,
+    reliabilityScore: 0.97,
+    status: 'online',
+    localAvailable: false
   }
 ];
 
 export const INITIAL_TOOLS: ToolDefinition[] = [
   {
-    id: 'bash',
-    name: 'Sandboxed Bash Execution',
-    category: 'system',
-    description: 'Execute shell commands inside the container sandbox with output truncation and timeouts.',
-    riskLevel: 'high',
-    enabled: true,
-    parameters: [
-      { name: 'command', type: 'string', required: true, description: 'The bash command to execute' },
-      { name: 'timeoutMs', type: 'number', required: false, description: 'Execution timeout in ms (default 60000)' }
-    ]
-  },
-  {
     id: 'fs.read',
-    name: 'File System Reader',
+    name: 'Filesystem Canonical Reader',
     category: 'fs',
-    description: 'Safely view file contents, slices, and directories within the workspace boundary.',
-    riskLevel: 'low',
+    description: 'Reads canonicalized files within authorized workspace boundaries with strict ../ escape prevention.',
+    risk: 'L0',
+    permissions: ['filesystem.read'],
+    source: 'native',
     enabled: true,
-    parameters: [
-      { name: 'path', type: 'string', required: true, description: 'Workspace relative path' },
-      { name: 'lines', type: 'string', required: false, description: 'Slice range e.g. 1-100' }
+    inputSchema: [
+      { name: 'path', type: 'string', required: true, description: 'Relative path to workspace root' },
+      { name: 'encoding', type: 'string', required: false, description: 'File encoding (utf-8 default)' }
     ]
   },
   {
     id: 'fs.write',
-    name: 'File System Writer',
+    name: 'Transactional File Mutation',
     category: 'fs',
-    description: 'Create or update files with syntax validation and rollback protection.',
-    riskLevel: 'medium',
+    description: 'Modifies or creates workspace files staged inside a MutationTransaction with rollback snapshot.',
+    risk: 'L1',
+    permissions: ['filesystem.write'],
+    source: 'native',
     enabled: true,
-    parameters: [
-      { name: 'path', type: 'string', required: true, description: 'Destination file path' },
-      { name: 'content', type: 'string', required: true, description: 'Complete file content to write' }
-    ]
-  },
-  {
-    id: 'diff.patch',
-    name: 'Unified Diff Patch',
-    category: 'fs',
-    description: 'Apply targeted hunk edits to code files using unified diff format.',
-    riskLevel: 'low',
-    enabled: true,
-    parameters: [
+    inputSchema: [
       { name: 'path', type: 'string', required: true, description: 'Target file path' },
-      { name: 'patch', type: 'string', required: true, description: 'Unified diff hunk string' }
+      { name: 'content', type: 'string', required: true, description: 'Content payload' },
+      { name: 'transaction_id', type: 'string', required: true, description: 'Active transaction ID' }
     ]
   },
   {
-    id: 'lsp.diagnostics',
-    name: 'Language Server Protocol Diagnostics',
+    id: 'shell.execute',
+    name: 'Structured Subprocess Runner',
+    category: 'shell',
+    description: 'Executes structured executable + args (e.g. cargo test) inside restricted sandbox container.',
+    risk: 'L1',
+    permissions: ['shell.execute'],
+    source: 'native',
+    enabled: true,
+    inputSchema: [
+      { name: 'executable', type: 'string', required: true, description: 'Binary name (e.g. cargo, npm, pytest)' },
+      { name: 'args', type: 'array', required: true, description: 'Arguments list' },
+      { name: 'timeout_secs', type: 'number', required: false, description: 'Execution timeout cap' }
+    ]
+  },
+  {
+    id: 'git.commit',
+    name: 'Local Git Commit',
+    category: 'git',
+    description: 'Commits staged transactional diffs with deterministic author metadata.',
+    risk: 'L1',
+    permissions: ['git.commit'],
+    source: 'native',
+    enabled: true,
+    inputSchema: [
+      { name: 'message', type: 'string', required: true, description: 'Conventional commit message' },
+      { name: 'transaction_id', type: 'string', required: true, description: 'Validated transaction ID' }
+    ]
+  },
+  {
+    id: 'git.push',
+    name: 'Remote Repository Push',
+    category: 'git',
+    description: 'Pushes commits to upstream remote. Strictly requires human operator approval (L2).',
+    risk: 'L2',
+    permissions: ['git.push'],
+    source: 'native',
+    enabled: true,
+    inputSchema: [
+      { name: 'remote', type: 'string', required: true, description: 'Target remote name (e.g. origin)' },
+      { name: 'branch', type: 'string', required: true, description: 'Target branch name (e.g. main)' }
+    ]
+  },
+  {
+    id: 'mcp.github.pr_create',
+    name: 'GitHub Pull Request Creator',
+    category: 'mcp',
+    description: 'Invokes GitHub MCP server to open pull request on remote repository (L2 external mutation).',
+    risk: 'L2',
+    permissions: ['mcp.invoke', 'network.http.write'],
+    source: 'mcp_server',
+    mcpServerName: 'mcp-github-prod',
+    enabled: true,
+    inputSchema: [
+      { name: 'title', type: 'string', required: true, description: 'PR Title' },
+      { name: 'body', type: 'string', required: true, description: 'PR Description' },
+      { name: 'head', type: 'string', required: true, description: 'Feature branch' }
+    ]
+  },
+  {
+    id: 'system.pkg_install',
+    name: 'System Package Installer',
     category: 'system',
-    description: 'Retrieve real-time TypeScript/Go compiler diagnostics and type errors.',
-    riskLevel: 'low',
+    description: 'Installs OS packages or system binaries. Privileged operation requiring operator elevation (L3).',
+    risk: 'L3',
+    permissions: ['system.package.install'],
+    source: 'native',
     enabled: true,
-    parameters: [
-      { name: 'file', type: 'string', required: true, description: 'Source file to inspect' }
+    inputSchema: [
+      { name: 'package', type: 'string', required: true, description: 'Package name' },
+      { name: 'manager', type: 'string', required: true, description: 'Package manager (apt, pacman, brew)' }
     ]
-  },
+  }
+];
+
+export const INITIAL_POLICIES: PolicyRule[] = [
   {
-    id: 'gemini.search',
-    name: 'Grounded Web Search',
-    category: 'web',
-    description: 'Retrieve live web results and official library documentation via grounded search.',
-    riskLevel: 'low',
+    id: 'pol-01',
+    name: 'INV-04: Workspace Boundary Enforcer',
+    description: 'Denies any filesystem access containing ../ traversal or pointing outside workspace root.',
+    matchIdentity: '*',
+    matchTool: 'fs.*',
+    matchRisk: ['L0', 'L1', 'L2', 'L3', 'L4'],
+    action: 'ALLOW',
     enabled: true,
-    parameters: [
-      { name: 'query', type: 'string', required: true, description: 'The search query string' }
+    order: 1
+  },
+  {
+    id: 'pol-02',
+    name: 'INV-05: Secret Context Leak Guard',
+    description: 'Rejects queries or tool args embedding raw API tokens instead of secret:// URI references.',
+    matchIdentity: '*',
+    matchTool: '*',
+    matchRisk: ['L0', 'L1', 'L2', 'L3', 'L4'],
+    action: 'ALLOW',
+    enabled: true,
+    order: 2
+  },
+  {
+    id: 'pol-03',
+    name: 'L2 External Mutation Approval Rule',
+    description: 'Suspends all git.push, cloud API provisioning, or remote webhook calls until operator approval.',
+    matchIdentity: '*',
+    matchTool: 'git.push,mcp.github.*,cloud.*',
+    matchRisk: ['L2'],
+    action: 'REQUIRE_APPROVAL',
+    enabled: true,
+    order: 3
+  },
+  {
+    id: 'pol-04',
+    name: 'L3/L4 Privileged & Destructive Guard',
+    description: 'Strictly blocks unapproved root subprocess execution, sudo, or filesystem truncation.',
+    matchIdentity: '*',
+    matchTool: 'system.*,db.drop.*',
+    matchRisk: ['L3', 'L4'],
+    action: 'REQUIRE_APPROVAL',
+    enabled: true,
+    order: 4
+  }
+];
+
+export const INITIAL_APPROVALS: ApprovalRequest[] = [
+  {
+    id: 'apr-01-gitpush',
+    runId: 'run-9942',
+    agentName: 'Kernel Orchestrator',
+    toolId: 'git.push',
+    risk: 'L2',
+    arguments: {
+      remote: 'origin',
+      branch: 'main',
+      commits_count: 2
+    },
+    justification: 'Automated refactoring of Model Router and Spec Lock verifier passed all 14 integration tests.',
+    timestamp: '2026-08-30 12:40:15',
+    status: 'pending',
+    targetResource: 'github.com/anamnesic/anamnesic-core:main'
+  },
+  {
+    id: 'apr-02-mcppr',
+    runId: 'run-9938',
+    agentName: 'MCP Integration Worker',
+    toolId: 'mcp.github.pr_create',
+    risk: 'L2',
+    arguments: {
+      title: 'feat: implement transactional rollback for failed spec locks',
+      head: 'feature/spec-lock-rollback',
+      base: 'main'
+    },
+    justification: 'Feature implementation verified via cargo test; requesting PR creation.',
+    timestamp: '2026-08-30 11:15:20',
+    status: 'approved',
+    targetResource: 'github.com/anamnesic/anamnesic-core'
+  }
+];
+
+export const INITIAL_SPEC_LOCKS: SpecLock[] = [
+  {
+    id: 'spec-model-router-v2',
+    name: 'ModelRouter & Provider Traits Contract',
+    workspaceId: 'ws-core-main',
+    targetFiles: ['crates/anamnesic-models/src/router.rs', 'crates/anamnesic-models/src/provider.rs'],
+    enforced: true,
+    createdAt: '2026-08-30 08:00:00',
+    symbols: [
+      {
+        name: 'route_request',
+        kind: 'function',
+        parameters: { request: 'ModelRequest', capabilities: 'ModelCapabilities' },
+        returns: 'Result<ModelRoute, ModelError>',
+        status: 'matched',
+        file: 'crates/anamnesic-models/src/router.rs'
+      },
+      {
+        name: 'ModelProvider',
+        kind: 'trait',
+        parameters: { complete: 'ModelRequest -> Result<ModelResponse, ModelError>' },
+        returns: 'Self',
+        status: 'matched',
+        file: 'crates/anamnesic-models/src/provider.rs'
+      },
+      {
+        name: 'ModelCapabilities',
+        kind: 'struct',
+        parameters: { tools: 'bool', reasoning: 'bool', max_context: 'usize' },
+        returns: 'Self',
+        status: 'matched',
+        file: 'crates/anamnesic-models/src/provider.rs'
+      }
+    ]
+  },
+  {
+    id: 'spec-policy-engine-v2',
+    name: 'PolicyEngine Decision Contract',
+    workspaceId: 'ws-core-main',
+    targetFiles: ['crates/anamnesic-policy/src/engine.rs'],
+    enforced: true,
+    createdAt: '2026-08-30 09:30:00',
+    symbols: [
+      {
+        name: 'evaluate_action',
+        kind: 'function',
+        parameters: { identity: 'IdentityId', tool: 'ToolId', args: '&JsonValue', risk: 'RiskLevel' },
+        returns: 'PolicyDecision',
+        status: 'matched',
+        file: 'crates/anamnesic-policy/src/engine.rs'
+      }
     ]
   }
 ];
 
-export const INITIAL_DREAMS: DreamEntry[] = [
+export const INITIAL_TRANSACTIONS: MutationTransaction[] = [
   {
-    id: 'dream-2026-08-30',
-    timestamp: '2026-08-30 03:00:00',
-    title: 'Cycle 48: Effect v4 Pipeline Consolidation & Stream Pruning',
-    summary: 'Consolidated 12 transient debugging sessions. Abstracted channel websocket heartbeat reconnection intervals to use exponential jitter. Preserved user preference for high-contrast dark dashboard styling.',
-    insights: [
-      'Identified that non-blocking chat.send RPC minimizes UI lag by streaming tool events incrementally.',
-      'Reduced memory footprint by pruning completed diff patch buffers older than 6 hours.',
-      'Validated that SecretRef object values must remain immutable to prevent serialization corruption.'
-    ],
-    prunedSessionsCount: 12,
-    distilledKnowledge: [
-      'WebSocket reconnect backoff formula: min(30000, 1000 * 2^attempt + rand(500))',
-      'Context compaction target: 95% context threshold triggers sliding window summary.'
-    ]
-  },
-  {
-    id: 'dream-2026-08-29',
-    timestamp: '2026-08-29 03:00:00',
-    title: 'Cycle 47: Device Pairing & Tailscale Auth Fortification',
-    summary: 'Automated verification of Tailscale Serve reverse proxy identity headers. Operator role requests now demand explicit approval unless origin matches loopback subnet.',
-    insights: [
-      'Tailscale Whois lookup latency averages 1.4ms on loopback.',
-      'Device pairing state persistence survived 4 daemon hot restarts without drift.'
-    ],
-    prunedSessionsCount: 8,
-    distilledKnowledge: [
-      'Trusted proxy tokens must be evaluated before socket handshake upgrade.'
+    id: 'tx-20260830-01',
+    workspaceId: 'ws-core-main',
+    snapshotId: 'snap-88419a',
+    runId: 'run-9942',
+    status: 'committed',
+    timestamp: '2026-08-30 12:20:00',
+    operations: [
+      {
+        id: 'op-01',
+        path: 'crates/anamnesic-models/src/router.rs',
+        type: 'modify',
+        diff: '+ pub async fn route_with_fallback(req: &ModelRequest) -> Result<ModelRoute, ModelError> { ... }',
+        specLockCompliant: true,
+        status: 'committed'
+      },
+      {
+        id: 'op-02',
+        path: 'crates/anamnesic-verification/src/pipeline.rs',
+        type: 'modify',
+        diff: '+ pub struct VerificationPipeline { stages: Vec<Stage>, repair_cycles: u32 }',
+        specLockCompliant: true,
+        status: 'committed'
+      }
     ]
   }
 ];
 
-export const INITIAL_LOGS: LogEntry[] = [
-  {
-    id: 'log-1',
-    timestamp: '12:10:04.102',
-    level: 'INFO',
-    source: 'gateway:ws',
-    message: 'WebSocket connection accepted from 127.0.0.1 [operator role: session-892]'
-  },
-  {
-    id: 'log-2',
-    timestamp: '12:10:04.108',
-    level: 'DEBUG',
-    source: 'auth:token',
-    message: 'Resolved active SecretRef for GEMINI_API_KEY from environment [cached]'
-  },
-  {
-    id: 'log-3',
-    timestamp: '12:11:18.420',
-    level: 'INFO',
-    source: 'agent:coder',
-    message: 'Agent execution initiated (runId: run-9428, prompt_tokens: 1420)'
-  },
-  {
-    id: 'log-4',
-    timestamp: '12:11:18.730',
-    level: 'INFO',
-    source: 'tool:bash',
-    message: 'Tool call [bash] executed in 310ms (status: exit 0)'
-  },
-  {
-    id: 'log-5',
-    timestamp: '12:12:00.002',
-    level: 'DEBUG',
-    source: 'cron:scheduler',
-    message: 'Heartbeat tick: next scheduled sweep in 18 minutes'
-  },
-  {
-    id: 'log-6',
-    timestamp: '12:12:34.901',
-    level: 'INFO',
-    source: 'channels:discord',
-    message: 'Channel ping acknowledged: Discord Dev Ops (RTT: 28ms)'
-  }
-];
-
-export const INITIAL_HEALTH: GatewayHealth = {
-  status: 'healthy',
-  uptimeSeconds: 84920,
-  memoryUsageMb: 148.6,
-  activeSockets: 4,
-  pairedDevicesCount: 2,
-  rpcLatencyMs: 4.2,
-  version: '2.4.0-kairos.build'
+export const INITIAL_VERIFICATION_PIPELINE: VerificationPipeline = {
+  id: 'pipe-run-9942',
+  runId: 'run-9942',
+  status: 'passed',
+  repairAttempt: 0,
+  maxRepairCycles: 5,
+  stages: [
+    {
+      id: 'stg-1',
+      name: 'Specification Contract Check',
+      type: 'spec_check',
+      command: 'anamnesic-spec-lock --check crates/anamnesic-models',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 45,
+      diagnostics: '✓ 3 of 3 symbol contracts verified. Zero AST signature drift.'
+    },
+    {
+      id: 'stg-2',
+      name: 'Format & Style Analysis',
+      type: 'format',
+      command: 'cargo fmt --check',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 90,
+      diagnostics: '✓ All files cleanly formatted according to standard rustfmt.'
+    },
+    {
+      id: 'stg-3',
+      name: 'Compiler Type Check & Cargo Build',
+      type: 'compile',
+      command: 'cargo check --workspace --all-targets',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 640,
+      diagnostics: '✓ Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.64s'
+    },
+    {
+      id: 'stg-4',
+      name: 'Linter & Clippy Verification',
+      type: 'lint',
+      command: 'cargo clippy -- -D warnings',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 410,
+      diagnostics: '✓ 0 errors, 0 warnings across 14 crates.'
+    },
+    {
+      id: 'stg-5',
+      name: 'Integration & Hidden Adversarial Test Suite',
+      type: 'test',
+      command: 'cargo test --workspace',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 1250,
+      diagnostics: 'test result: ok. 48 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out'
+    },
+    {
+      id: 'stg-6',
+      name: 'Workspace Diff & Policy Bounds Analysis',
+      type: 'diff_analysis',
+      command: 'git diff --check',
+      exitCode: 0,
+      status: 'passed',
+      durationMs: 25,
+      diagnostics: '✓ 2 files modified (+48, -4). No unauthorized root modifications detected.'
+    }
+  ]
 };
 
+export const INITIAL_AUDIT_LOGS: AuditEvent[] = [
+  {
+    id: 'aud-1094',
+    timestamp: '2026-08-30 12:40:15',
+    type: 'approval.required',
+    identity: 'usr_operator_admin',
+    sessionId: 'ses-autonomous-01',
+    agentId: 'agt-core-architect',
+    tool: 'git.push',
+    resource: 'origin/main',
+    result: 'ALLOWED',
+    details: { justification: 'All 6 verification stages passed.', approval_id: 'apr-01-gitpush' }
+  },
+  {
+    id: 'aud-1093',
+    timestamp: '2026-08-30 12:39:50',
+    type: 'verification.completed',
+    identity: 'runtime_kernel',
+    sessionId: 'ses-autonomous-01',
+    agentId: 'agt-core-architect',
+    tool: 'cargo.test',
+    resource: 'crates/anamnesic-models',
+    result: 'SUCCESS',
+    details: { stages_passed: 6, repair_cycles: 0, duration_ms: 2460 }
+  },
+  {
+    id: 'aud-1092',
+    timestamp: '2026-08-30 12:39:10',
+    type: 'spec_lock.validated',
+    identity: 'runtime_kernel',
+    sessionId: 'ses-autonomous-01',
+    agentId: 'agt-contract-verifier',
+    tool: 'spec.check',
+    resource: 'spec-model-router-v2',
+    result: 'SUCCESS',
+    details: { symbols_matched: 3, drift_detected: false }
+  },
+  {
+    id: 'aud-1091',
+    timestamp: '2026-08-30 12:38:00',
+    type: 'transaction.staged',
+    identity: 'usr_operator_admin',
+    sessionId: 'ses-autonomous-01',
+    agentId: 'agt-core-architect',
+    tool: 'fs.write',
+    resource: 'crates/anamnesic-models/src/router.rs',
+    result: 'ALLOWED',
+    details: { tx_id: 'tx-20260830-01', snapshot_id: 'snap-88419a' }
+  },
+  {
+    id: 'aud-1090',
+    timestamp: '2026-08-30 12:37:12',
+    type: 'policy.evaluated',
+    identity: 'usr_operator_admin',
+    sessionId: 'ses-autonomous-01',
+    agentId: 'agt-core-architect',
+    tool: 'fs.read',
+    resource: 'crates/anamnesic-models/src/provider.rs',
+    result: 'ALLOWED',
+    details: { policy_rule: 'INV-04: Workspace Boundary Enforcer' }
+  }
+];
+
+export const INITIAL_HEALTH: ControlPlaneHealth = {
+  gatewayStatus: 'HEALTHY',
+  activeSessions: 3,
+  activeAgentRuns: 1,
+  pendingApprovals: 1,
+  activeTransactions: 1,
+  connectedMcpServers: 4,
+  memoryUsageMb: 246,
+  uptimeSeconds: 84920,
+  invariantStatus: 'ALL_PASS'
+};
+
+export const INITIAL_SESSIONS: Session[] = [
+  {
+    id: 'ses-autonomous-01',
+    title: 'Autonomous v2.4.0 Engine Architecture & Model Gateway',
+    workspacePath: '/workspaces/anamnesic-core',
+    identity: 'usr_operator_admin',
+    createdAt: '2026-08-30 10:00:00',
+    activeRunId: 'run-9942',
+    runs: [
+      {
+        id: 'run-9942',
+        sessionId: 'ses-autonomous-01',
+        agentId: 'agt-core-architect',
+        task: 'Implement Plan-Act-Verify lifecycle with strict Spec-Lock AST validation and transactional rollback.',
+        state: 'COMPLETE',
+        modelId: 'nvidia/nim-qwen-2.5-coder-32b',
+        currentStepIndex: 3,
+        createdAt: '2026-08-30 12:35:00',
+        completedAt: '2026-08-30 12:40:15',
+        budget: {
+          maxModelCalls: 40,
+          modelCallsUsed: 6,
+          maxToolCalls: 150,
+          toolCallsUsed: 14,
+          maxRepairCycles: 5,
+          repairCyclesUsed: 0,
+          maxChangedFiles: 20,
+          changedFilesCount: 2,
+          maxRuntimeSeconds: 1800,
+          runtimeSecondsUsed: 315,
+          tokenBudget: 200000,
+          tokensUsed: 28450
+        },
+        plan: [
+          {
+            id: 'step-1',
+            order: 1,
+            objective: 'Build lightweight repository model and extract Spec Lock for ModelRouter & Provider traits.',
+            intendedMutations: ['crates/anamnesic-models/src/router.rs'],
+            validationStrategy: 'Check AST symbol signatures and verify invariants INV-01 to INV-05.',
+            expectedOutcome: 'Spec Lock JSON created with 3 locked symbols.',
+            status: 'passed'
+          },
+          {
+            id: 'step-2',
+            order: 2,
+            objective: 'Initialize MutationTransaction snapshot and stage code enhancements for capability-based routing.',
+            intendedMutations: ['crates/anamnesic-models/src/router.rs', 'crates/anamnesic-verification/src/pipeline.rs'],
+            validationStrategy: 'Run Spec Lock validation pre-commit hook.',
+            expectedOutcome: 'Mutation staged cleanly without symbol drift.',
+            status: 'passed'
+          },
+          {
+            id: 'step-3',
+            order: 3,
+            objective: 'Execute full 6-stage Verification Pipeline (Spec, Format, Compile, Lint, Test, Diff).',
+            intendedMutations: [],
+            validationStrategy: 'cargo check && cargo clippy && cargo test',
+            expectedOutcome: 'All 48 tests pass; zero warnings.',
+            status: 'passed'
+          },
+          {
+            id: 'step-4',
+            order: 4,
+            objective: 'Submit commit and request L2 approval for upstream Git push.',
+            intendedMutations: [],
+            validationStrategy: 'Operator approval event via Policy Engine.',
+            expectedOutcome: 'Approval request apr-01-gitpush dispatched.',
+            status: 'passed'
+          }
+        ],
+        verification: INITIAL_VERIFICATION_PIPELINE,
+        transactionId: 'tx-20260830-01',
+        approvals: [INITIAL_APPROVALS[0]]
+      }
+    ]
+  }
+];
+
 export const INITIAL_CONFIG = {
-  gateway: {
-    bind: "0.0.0.0",
-    port: 18789,
-    auth: {
-      mode: "token",
-      allowTailscale: true,
-      allowInsecureAuth: true
-    },
-    controlUi: {
-      basePath: "/",
-      embedSandbox: "scripts",
-      allowedOrigins: ["http://localhost:3000", "http://127.0.0.1:3000"]
+  server: {
+    bind: "127.0.0.1:4317",
+    rpc_socket: "/tmp/anamnesic-core.sock",
+    ws_enabled: true,
+    tls: {
+      enabled: false,
+      cert_ref: "secret://tls/cert",
+      key_ref: "secret://tls/key"
     }
   },
-  agents: {
-    defaults: {
-      model: "anthropic/claude-3-7-sonnet",
-      fallback: "google/gemini-2.0-flash",
-      temperature: 0.2,
-      maxTokens: 200000,
-      compactionThreshold: 0.95
-    }
+  agent: {
+    max_iterations: 50,
+    max_repair_cycles: 5,
+    default_isolation: "local_sandbox",
+    spec_lock_enforcement: "strict",
+    transactional_mutation: true
   },
-  channels: {
-    discord: { enabled: true, announceSummary: true },
-    telegram: { enabled: true },
-    slack: { enabled: true },
-    matrix: { enabled: true }
+  models: {
+    default_provider: "nvidia_nim",
+    default_model: "nvidia/nim-qwen-2.5-coder-32b",
+    fallback_chain: [
+      "ollama/llama-3.3-70b-instruct",
+      "google/gemini-2.0-flash",
+      "anthropic/claude-3-7-sonnet"
+    ],
+    temperature_default: 0.2
   },
-  memory: {
-    engine: "lancedb",
-    dreamingEnabled: true,
-    dreamSchedule: "0 3 * * *"
+  policy: {
+    default_network: "deny",
+    require_approval_for_external_mutations: true,
+    sandbox_path_escape_prevention: true,
+    strict_secret_ref_resolution: true
+  },
+  mcp: {
+    auto_discovery: true,
+    servers: [
+      { name: "mcp-github-prod", command: "npx", args: ["-y", "@modelcontextprotocol/server-github"], risk_ceiling: "L2" },
+      { name: "mcp-filesystem-sandbox", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces"], risk_ceiling: "L1" },
+      { name: "mcp-sqlite-core", command: "uvx", args: ["mcp-server-sqlite", "--db-path", "state/anamnesic.db"], risk_ceiling: "L1" }
+    ]
+  },
+  verification: {
+    stages: ["spec_check", "format", "compile", "lint", "test", "diff_analysis"],
+    fail_fast: true,
+    capture_diagnostics: true
+  },
+  audit: {
+    enabled: true,
+    storage: "sqlite",
+    retention_days: 90,
+    redact_sensitive_fields: true
   }
 };

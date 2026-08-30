@@ -1,253 +1,171 @@
 import React, { useState } from 'react';
 import { 
-  Settings2, 
-  Code, 
-  Save, 
-  RotateCcw, 
+  Settings, 
+  Key, 
+  ShieldAlert, 
+  Database, 
+  Server, 
+  RefreshCw, 
   Check, 
-  AlertCircle, 
   Lock, 
-  FileJson,
-  ShieldCheck
+  Eye, 
+  EyeOff, 
+  Save, 
+  Copy,
+  Terminal,
+  FileCode
 } from 'lucide-react';
+import { INITIAL_CONFIG } from '../data/mockData';
 
-interface ConfigViewProps {
-  config: any;
-  onSaveConfig: (newConfig: any) => void;
-}
+export const ConfigView: React.FC = () => {
+  const [config, setConfig] = useState(INITIAL_CONFIG);
+  const [showSecrets, setShowSecrets] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
-export const ConfigView: React.FC<ConfigViewProps> = ({ config, onSaveConfig }) => {
-  const [mode, setMode] = useState<'form' | 'raw'>('form');
-  const [rawText, setRawText] = useState<string>(JSON.stringify(config, null, 2));
-  const [jsonError, setJsonError] = useState<string | null>(null);
-  const [saveToast, setSaveToast] = useState(false);
-
-  // Form State
-  const [gatewayBind, setGatewayBind] = useState(config.gateway?.bind || '0.0.0.0');
-  const [gatewayPort, setGatewayPort] = useState(config.gateway?.port || 18789);
-  const [authMode, setAuthMode] = useState(config.gateway?.auth?.mode || 'token');
-  const [allowTailscale, setAllowTailscale] = useState(config.gateway?.auth?.allowTailscale ?? true);
-  const [embedSandbox, setEmbedSandbox] = useState(config.gateway?.controlUi?.embedSandbox || 'scripts');
-  const [memoryEngine, setMemoryEngine] = useState(config.memory?.engine || 'lancedb');
-  const [dreamingEnabled, setDreamingEnabled] = useState(config.memory?.dreamingEnabled ?? true);
-  const [compactionThreshold, setCompactionThreshold] = useState(config.agents?.defaults?.compactionThreshold ?? 0.95);
-
-  const handleSaveForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const updated = {
-      ...config,
-      gateway: {
-        ...config.gateway,
-        bind: gatewayBind,
-        port: gatewayPort,
-        auth: {
-          ...config.gateway?.auth,
-          mode: authMode,
-          allowTailscale
-        },
-        controlUi: {
-          ...config.gateway?.controlUi,
-          embedSandbox
-        }
-      },
-      agents: {
-        ...config.agents,
-        defaults: {
-          ...config.agents?.defaults,
-          compactionThreshold
-        }
-      },
-      memory: {
-        ...config.memory,
-        engine: memoryEngine,
-        dreamingEnabled
-      }
-    };
-
-    onSaveConfig(updated);
-    setRawText(JSON.stringify(updated, null, 2));
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2000);
-  };
-
-  const handleSaveRaw = () => {
-    try {
-      const parsed = JSON.parse(rawText);
-      setJsonError(null);
-      onSaveConfig(parsed);
-      setSaveToast(true);
-      setTimeout(() => setSaveToast(false), 2000);
-    } catch (err: any) {
-      setJsonError(err.message || 'Invalid JSON syntax');
-    }
+  const handleSave = () => {
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2000);
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-zinc-950 space-y-6">
-      {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-emerald-400" />
-            <span>KAIROS System Configuration (~/.kairos/kairos.json)</span>
-          </h2>
-          <p className="text-xs text-zinc-400 mt-1">
-            Schema-validated configuration with SecretRef resolution, base-hash guard, and dynamic hot-reload.
-          </p>
+    <div className="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden text-zinc-100">
+      {/* Header */}
+      <div className="border-b border-zinc-800 bg-zinc-900/60 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
+            <Settings className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h2 className="font-semibold text-sm tracking-wide text-zinc-100">Control Plane Configuration & Secrets (Section 41 & 57)</h2>
+              <span className="px-2 py-0.5 text-xs font-mono rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Layered Resolution
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400">Default settings, server socket bindings, and secret:// reference resolution broker</p>
+          </div>
         </div>
 
-        {/* Mode Toggle */}
-        <div className="flex items-center gap-2">
-          <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs">
+        <button
+          onClick={handleSave}
+          className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center space-x-1.5 shadow-sm shadow-emerald-950 transition-colors"
+        >
+          {savedSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+          <span>{savedSuccess ? 'Configuration Saved' : 'Save Changes'}</span>
+        </button>
+      </div>
+
+      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        {/* Secret Reference Isolation Broker (INV-05 & Section 41) */}
+        <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-1.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-200">
+                  Secret Reference Isolation (INV-05)
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  Secrets never enter prompts or logs. Agents reference secret:// URIs resolved only within the trusted execution sandbox.
+                </p>
+              </div>
+            </div>
+
             <button
-              onClick={() => setMode('form')}
-              className={`px-3 py-1 rounded font-medium transition cursor-pointer ${
-                mode === 'form' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-400'
-              }`}
+              onClick={() => setShowSecrets(!showSecrets)}
+              className="px-2.5 py-1 text-xs font-mono rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 flex items-center space-x-1"
             >
-              Schema Form
-            </button>
-            <button
-              onClick={() => setMode('raw')}
-              className={`px-3 py-1 rounded font-medium transition cursor-pointer ${
-                mode === 'raw' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-400'
-              }`}
-            >
-              Raw JSON
+              {showSecrets ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              <span>{showSecrets ? 'Hide URIs' : 'Inspect URIs'}</span>
             </button>
           </div>
 
-          <button
-            onClick={mode === 'form' ? handleSaveForm : handleSaveRaw}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/50 cursor-pointer"
-          >
-            {saveToast ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-            <span>{saveToast ? 'Applied & Restarted' : 'Save & Hot-Apply'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* SecretRef Notice */}
-      <div className="p-3.5 bg-zinc-900/60 rounded-xl border border-zinc-800 flex items-center justify-between text-xs text-zinc-300">
-        <div className="flex items-center gap-2.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>
-            <strong>SecretRef Guard:</strong> Sensitive API keys are never stored plain-text in JSON; active refs are dynamically resolved via container environment.
-          </span>
-        </div>
-        <span className="font-mono text-[11px] text-emerald-400 font-semibold">Active</span>
-      </div>
-
-      {mode === 'form' ? (
-        <form onSubmit={handleSaveForm} className="max-w-3xl space-y-6">
-          {/* Gateway Section */}
-          <div className="p-5 bg-zinc-900/50 rounded-xl border border-zinc-800 space-y-4">
-            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-wider text-xs">
-              Gateway Daemon & Transports
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="text-zinc-400 font-semibold block mb-1">Host Ingress Bind</label>
-                <input
-                  type="text"
-                  value={gatewayBind}
-                  onChange={(e) => setGatewayBind(e.target.value)}
-                  className="w-full bg-zinc-950 text-zinc-100 font-mono rounded-lg p-2.5 border border-zinc-700"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 font-mono text-xs">
+            {[
+              { label: 'NVIDIA NIM Token', ref: 'secret://nvidia/nim-token' },
+              { label: 'GitHub MCP Token', ref: 'secret://github/default' },
+              { label: 'SQLite Encryption Key', ref: 'secret://database/master' }
+            ].map(sec => (
+              <div key={sec.label} className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1">
+                <span className="text-[10px] text-zinc-500 uppercase">{sec.label}</span>
+                <div className="text-emerald-400 font-semibold truncate">
+                  {showSecrets ? sec.ref : 'secret://••••••••••••••••'}
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
 
+        {/* Server & Runtime Config Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Server Networking */}
+          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-5 space-y-4 text-xs">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Server & IPC Bindings</h3>
+
+            <div>
+              <label className="block text-zinc-400 mb-1 font-mono">Control Plane Bind Address</label>
+              <input
+                type="text"
+                value={config.server.bind}
+                onChange={(e) => setConfig({ ...config, server: { ...config.server, bind: e.target.value } })}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-zinc-200 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-zinc-400 mb-1 font-mono">IPC Unix Domain Socket</label>
+              <input
+                type="text"
+                value={config.server.rpc_socket}
+                onChange={(e) => setConfig({ ...config, server: { ...config.server, rpc_socket: e.target.value } })}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-zinc-200 font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Execution Limits & Budgets */}
+          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-5 space-y-4 text-xs">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Default Execution Limits</h3>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-zinc-400 font-semibold block mb-1">Gateway Port</label>
+                <label className="block text-zinc-400 mb-1 font-mono">Max Iterations Cap</label>
                 <input
                   type="number"
-                  value={gatewayPort}
-                  onChange={(e) => setGatewayPort(parseInt(e.target.value))}
-                  className="w-full bg-zinc-950 text-zinc-100 font-mono rounded-lg p-2.5 border border-zinc-700"
+                  value={config.agent.max_iterations}
+                  onChange={(e) => setConfig({ ...config, agent: { ...config.agent, max_iterations: parseInt(e.target.value) || 50 } })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-zinc-200 font-mono"
                 />
               </div>
 
               <div>
-                <label className="text-zinc-400 font-semibold block mb-1">Auth Mode</label>
-                <select
-                  value={authMode}
-                  onChange={(e) => setAuthMode(e.target.value)}
-                  className="w-full bg-zinc-950 text-zinc-100 font-mono rounded-lg p-2.5 border border-zinc-700"
-                >
-                  <option value="token">Token (Bearer SecretRef)</option>
-                  <option value="trusted-proxy">Trusted Proxy (Tailscale)</option>
-                  <option value="password">Password Authentication</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-zinc-400 font-semibold block mb-1">Embed Sandbox Policy</label>
-                <select
-                  value={embedSandbox}
-                  onChange={(e) => setEmbedSandbox(e.target.value)}
-                  className="w-full bg-zinc-950 text-zinc-100 font-mono rounded-lg p-2.5 border border-zinc-700"
-                >
-                  <option value="scripts">Scripts Allowed (Default)</option>
-                  <option value="strict">Strict (No script execution)</option>
-                  <option value="trusted">Trusted (Same-origin granted)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Memory & Compaction Section */}
-          <div className="p-5 bg-zinc-900/50 rounded-xl border border-zinc-800 space-y-4">
-            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-wider text-xs">
-              Memory Engine & Context Thresholds
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="text-zinc-400 font-semibold block mb-1">Vector Storage Backend</label>
-                <select
-                  value={memoryEngine}
-                  onChange={(e) => setMemoryEngine(e.target.value)}
-                  className="w-full bg-zinc-950 text-zinc-100 font-mono rounded-lg p-2.5 border border-zinc-700"
-                >
-                  <option value="lancedb">LanceDB (High performance vector index)</option>
-                  <option value="sqlite">SQLite Vector</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-zinc-400 font-semibold block mb-1">
-                  Auto-Compaction Threshold ({Math.round(compactionThreshold * 100)}%)
-                </label>
+                <label className="block text-zinc-400 mb-1 font-mono">Max Repair Cycles</label>
                 <input
-                  type="range"
-                  min="0.5"
-                  max="0.99"
-                  step="0.01"
-                  value={compactionThreshold}
-                  onChange={(e) => setCompactionThreshold(parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 mt-2"
+                  type="number"
+                  value={config.agent.max_repair_cycles}
+                  onChange={(e) => setConfig({ ...config, agent: { ...config.agent, max_repair_cycles: parseInt(e.target.value) || 5 } })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-zinc-200 font-mono"
                 />
               </div>
             </div>
-          </div>
-        </form>
-      ) : (
-        <div className="space-y-3 max-w-4xl">
-          {jsonError && (
-            <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{jsonError}</span>
-            </div>
-          )}
 
-          <textarea
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            rows={22}
-            className="w-full bg-zinc-950 text-emerald-300 font-mono text-xs p-4 rounded-xl border border-zinc-800 focus:border-emerald-500 leading-relaxed"
-          />
+            <div>
+              <label className="block text-zinc-400 mb-1 font-mono">Default Execution Isolation</label>
+              <select
+                value={config.agent.default_isolation}
+                onChange={(e) => setConfig({ ...config, agent: { ...config.agent, default_isolation: e.target.value } })}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-zinc-200 font-mono"
+              >
+                <option value="local_sandbox">local_sandbox (OS Restricted Subprocess)</option>
+                <option value="docker_isolated">docker_isolated (Container Boundary)</option>
+                <option value="host_restricted">host_restricted (Non-privileged)</option>
+              </select>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
